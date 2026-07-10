@@ -397,4 +397,22 @@ class AdminController {
             return ["success" => false, "message" => $e->getMessage()];
         }
     }
+
+    public function sendVendorWarning($data) {
+        $vendorId = intval($data['vendor_id'] ?? 0);
+        $message = trim($data['message'] ?? '');
+
+        if ($vendorId <= 0 || empty($message)) {
+            return ["success" => false, "message" => "Vendor ID and message are required."];
+        }
+
+        try {
+            $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+            $stmt->execute([$vendorId, "ADMIN WARNING: " . $message]);
+
+            return ["success" => true, "message" => "Warning message sent to vendor successfully."];
+        } catch (Exception $e) {
+            return ["success" => false, "message" => $e->getMessage()];
+        }
+    }
 }

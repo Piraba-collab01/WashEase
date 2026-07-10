@@ -255,6 +255,14 @@ switch ($action) {
         }
         break;
 
+    case 'admin-send-warning':
+        requireRole(['admin']);
+        if ($method === 'POST') {
+            $admin = new AdminController();
+            $response = $admin->sendVendorWarning(getJsonInput());
+        }
+        break;
+
     case 'admin-approve-user':
         requireRole(['admin']);
         if ($method === 'POST') {

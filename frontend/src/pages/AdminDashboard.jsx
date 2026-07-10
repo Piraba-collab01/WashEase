@@ -23,6 +23,10 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
   // All Vendors
   const [vendors, setVendors] = useState([]);
 
+  // Warning Vendor state
+  const [warningVendor, setWarningVendor] = useState(null);
+  const [warningMessage, setWarningMessage] = useState('');
+
   // All Orders & Filters
   const [orders, setOrders] = useState([]);
   const [filterDate, setFilterDate] = useState('');
@@ -178,6 +182,36 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
     } catch (err) {
       console.error(err);
       setError('Failed to update vendor status.');
+    }
+  };
+
+  const handleSendWarningSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      const res = await fetchWithAuth(`http://localhost:8000/index.php?action=admin-send-warning`, {
+        method: 'POST',
+        body: JSON.stringify({
+          vendor_id: warningVendor.vendor_id,
+          message: warningMessage
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess(data.message);
+        setWarningVendor(null);
+        setWarningMessage('');
+      } else {
+        setError(data.message || 'Failed to send warning.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -482,22 +516,39 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
                         <td>
                           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
                             {v.status === 'active' ? (
-                              <button 
-                                className="btn btn-danger" 
-                                style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem' }} 
-                                onClick={() => handleUpdateVendorStatus(v.vendor_id, 'inactive')}
-                              >
-                                Deactivate
-                              </button>
+                              <>
+                                <button 
+                                  className="btn btn-danger" 
+                                  style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem' }} 
+                                  onClick={() => handleUpdateVendorStatus(v.vendor_id, 'inactive')}
+                                >
+                                  Deactivate
+                                </button>
+                                <button 
+                                  className="btn btn-danger" 
+                                  style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', background: '#d90429' }} 
+                                  onClick={() => handleUpdateVendorStatus(v.vendor_id, 'blocked')}
+                                >
+                                  Block
+                                </button>
+                              </>
                             ) : (
                               <button 
                                 className="btn btn-primary" 
                                 style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem' }} 
                                 onClick={() => handleUpdateVendorStatus(v.vendor_id, 'active')}
                               >
-                                Activate
+                                Activate / Unblock
                               </button>
                             )}
+
+                            <button 
+                              className="btn btn-secondary" 
+                              style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', border: '1px solid var(--warning)', color: 'var(--warning)' }} 
+                              onClick={() => { setWarningVendor(v); setWarningMessage(`Warning: You have outstanding commission of Rs ${parseFloat(v.unpaid_commission || 0).toFixed(2)}. Please clear it to avoid account blocking.`); }}
+                            >
+                              ⚠️ Warning
+                            </button>
 
                             {parseFloat(v.unpaid_commission || 0) > 0 && (
                               <button 
@@ -507,16 +558,6 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
                                 title="Clear commission dues and set active"
                               >
                                 Clear Dues
-                              </button>
-                            )}
-
-                            {v.status !== 'blocked' && parseFloat(v.unpaid_commission || 0) >= 1000 && (
-                              <button 
-                                className="btn btn-danger" 
-                                style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', fontWeight: 'bold' }} 
-                                onClick={() => handleUpdateVendorStatus(v.vendor_id, 'blocked')}
-                              >
-                                Block
                               </button>
                             )}
                           </div>
@@ -767,6 +808,41 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
                   {loading ? 'Resolving...' : 'Submit Resolution'}
                 </button>
                 <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setResolvingComplaint(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Send Warning Message Dialog Modal */}
+      {warningVendor && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-panel" style={{ maxWidth: '500px', animation: 'fadeIn 0.3s ease-out' }}>
+            <h3 style={{ color: 'var(--primary)', marginBottom: '0.25rem' }}>Send Warning to Vendor</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              Shop Name: <b>{warningVendor.shop_name}</b> | Owner: <b>{warningVendor.owner_name}</b>
+            </p>
+
+            <form onSubmit={handleSendWarningSubmit}>
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label">Warning Message Description</label>
+                <textarea 
+                  className="form-control" 
+                  rows="4" 
+                  placeholder="Enter details of warning message. This will notify the vendor." 
+                  value={warningMessage} 
+                  onChange={(e) => setWarningMessage(e.target.value)} 
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={loading}>
+                  {loading ? 'Sending...' : 'Send Warning'}
+                </button>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setWarningVendor(null)}>
                   Cancel
                 </button>
               </div>

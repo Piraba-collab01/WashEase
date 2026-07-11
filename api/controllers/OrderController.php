@@ -429,7 +429,7 @@ class OrderController {
 
                 // Notify Vendor about payment
                 $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
-                $vendorMsg = "Payment of $" . number_format($actualPaidAmount, 2) . " has been confirmed for Order #{$order['tracking_number']}. Commission of $" . number_format($commissionOwed, 2) . " ($commPct%) has been charged.";
+                $vendorMsg = "Payment of Rs " . number_format($actualPaidAmount, 2) . " has been confirmed for Order #{$order['tracking_number']}. Commission of Rs " . number_format($commissionOwed, 2) . " ($commPct%) has been charged.";
                 $stmt->execute([$order['vendor_id'], $vendorMsg]);
 
                 // Check if commission limit reached (Rs 1000)

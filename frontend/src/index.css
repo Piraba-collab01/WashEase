@@ -5,14 +5,14 @@
   /* Colors */
   --primary-hue: 262;
   --secondary-hue: 180;
-  
+
   --primary: hsl(var(--primary-hue), 70%, 50%);
   --primary-light: hsl(var(--primary-hue), 85%, 65%);
   --primary-dark: hsl(var(--primary-hue), 80%, 35%);
-  
+
   --secondary: hsl(var(--secondary-hue), 85%, 40%);
   --secondary-light: hsl(var(--secondary-hue), 90%, 55%);
-  
+
   --accent: #ff6b6b;
   --success: #2ec4b6;
   --warning: #ff9f1c;
@@ -72,7 +72,12 @@ body {
   line-height: 1.6;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-title);
   font-weight: 700;
   letter-spacing: -0.5px;
@@ -343,11 +348,30 @@ a {
   text-transform: uppercase;
 }
 
-.badge-pending { background: rgba(255, 159, 28, 0.15); color: var(--warning); }
-.badge-active { background: rgba(46, 196, 182, 0.15); color: var(--success); }
-.badge-completed { background: rgba(46, 196, 182, 0.15); color: var(--success); }
-.badge-danger { background: rgba(231, 29, 54, 0.15); color: var(--danger); }
-.badge-info { background: rgba(138, 43, 226, 0.15); color: var(--primary-light); }
+.badge-pending {
+  background: rgba(255, 159, 28, 0.15);
+  color: var(--warning);
+}
+
+.badge-active {
+  background: rgba(46, 196, 182, 0.15);
+  color: var(--success);
+}
+
+.badge-completed {
+  background: rgba(46, 196, 182, 0.15);
+  color: var(--success);
+}
+
+.badge-danger {
+  background: rgba(231, 29, 54, 0.15);
+  color: var(--danger);
+}
+
+.badge-info {
+  background: rgba(138, 43, 226, 0.15);
+  color: var(--primary-light);
+}
 
 /* Timeline UI */
 .timeline {
@@ -422,13 +446,16 @@ a {
 .modal-content::-webkit-scrollbar {
   width: 6px;
 }
+
 .modal-content::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .modal-content::-webkit-scrollbar-thumb {
   background: var(--card-border);
   border-radius: 4px;
 }
+
 .modal-content::-webkit-scrollbar-thumb:hover {
   background: var(--primary-light);
 }
@@ -447,23 +474,46 @@ a {
 
 /* Micro-animations */
 @keyframes pulse {
-  0% { transform: scale(0.9); opacity: 0.6; }
-  50% { transform: scale(1.1); opacity: 1; }
-  100% { transform: scale(0.9); opacity: 0.6; }
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
 }
 
 /* Responsive Rules */
 @media (max-width: 992px) {
-  .navbar { padding: 0 1.5rem; }
-  .main-content { padding: 90px 1.5rem 1.5rem 1.5rem; }
+  .navbar {
+    padding: 0 1.5rem;
+  }
+
+  .main-content {
+    padding: 90px 1.5rem 1.5rem 1.5rem;
+  }
 }
 
 @media (max-width: 768px) {
   .nav-links {
-    display: none; /* In a real app, you would add a mobile hamburger menu. We'll design a responsive toggle. */
+    display: none;
+    /* In a real app, you would add a mobile hamburger menu. We'll design a responsive toggle. */
   }
-  .main-content { padding: 80px 1rem 1rem 1rem; }
-  .dashboard-grid { grid-template-columns: 1fr; }
+
+  .main-content {
+    padding: 80px 1rem 1rem 1rem;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ==========================================================================
@@ -487,7 +537,8 @@ a {
   background-attachment: fixed;
   display: flex;
   align-items: center;
-  margin-top: -70px; /* offset navbar height */
+  margin-top: -70px;
+  /* offset navbar height */
   padding-top: 70px;
 }
 
@@ -497,20 +548,16 @@ a {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(15, 12, 27, 0.45) 0%,
-    rgba(21, 16, 42, 0.8) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(15, 12, 27, 0.45) 0%,
+      rgba(21, 16, 42, 0.8) 100%);
   z-index: 1;
 }
 
 [data-theme="light"] .hero-overlay {
-  background: linear-gradient(
-    135deg,
-    rgba(245, 247, 250, 0.5) 0%,
-    rgba(228, 232, 240, 0.8) 100%
-  );
+  background: linear-gradient(135deg,
+      rgba(245, 247, 250, 0.5) 0%,
+      rgba(228, 232, 240, 0.8) 100%);
 }
 
 .hero-content-wrapper {
@@ -833,9 +880,23 @@ a {
   animation: float 4s ease-in-out infinite;
 }
 
-.bubble-1 { top: 20px; left: 40px; animation-delay: 0s; }
-.bubble-2 { top: 60px; right: 40px; animation-delay: 1.3s; }
-.bubble-3 { bottom: 30px; left: 50px; animation-delay: 2.6s; }
+.bubble-1 {
+  top: 20px;
+  left: 40px;
+  animation-delay: 0s;
+}
+
+.bubble-2 {
+  top: 60px;
+  right: 40px;
+  animation-delay: 1.3s;
+}
+
+.bubble-3 {
+  bottom: 30px;
+  left: 50px;
+  animation-delay: 2.6s;
+}
 
 /* Footer */
 .landing-footer {
@@ -934,6 +995,7 @@ a {
     opacity: 0;
     transform: translateY(40px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -941,14 +1003,27 @@ a {
 }
 
 @keyframes wave {
-  from { transform: translateY(0) rotate(0deg); }
-  to { transform: translateY(5px) rotate(10deg); }
+  from {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  to {
+    transform: translateY(5px) rotate(10deg);
+  }
 }
 
 @keyframes float {
-  0% { transform: translateY(0px) rotate(0deg); }
-  50% { transform: translateY(-12px) rotate(5deg); }
-  100% { transform: translateY(0px) rotate(0deg); }
+  0% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-12px) rotate(5deg);
+  }
+
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
 }
 
 /* Responsive Overrides */
@@ -962,6 +1037,7 @@ a {
   .hero-title {
     font-size: 2.75rem;
   }
+
   .partner-card {
     grid-template-columns: 1fr;
     padding: 2.5rem;
@@ -973,22 +1049,27 @@ a {
   .hero-card {
     padding: 2rem;
   }
+
   .hero-ctas {
     flex-direction: column;
     gap: 0.75rem;
   }
+
   .hero-stats {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
+
   .process-timeline {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
+
   .footer-content {
     flex-direction: column;
     gap: 2rem;
   }
+
   .footer-links {
     flex-wrap: wrap;
     gap: 2rem;
@@ -1251,19 +1332,41 @@ a {
   }
 }
 
-/* Floating Illustration Animation */
-.animate-float {
+/* Split Hero layout and cartoon styling */
+.hero-cartoon-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  max-width: 450px;
+  width: 100%;
   animation: float 6s ease-in-out infinite;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hero-cartoon-card:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 30px 60px rgba(138, 43, 226, 0.2);
+}
+
+.hero-cartoon-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
 }
 
 @keyframes float {
   0% {
-    transform: translateY(0px);
+    transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-15px);
+    transform: translateY(-15px) rotate(2deg);
   }
   100% {
-    transform: translateY(0px);
+    transform: translateY(0px) rotate(0deg);
   }
 }

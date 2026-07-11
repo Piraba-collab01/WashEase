@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import laundryBg from '../assets/laundry-bg.png';
-import laundryHeroPurple from '../assets/laundry-hero-purple.png';
+import laundryCartoon from '../assets/laundry-cartoon.jpeg';
 
 export const Landing = ({ setCurrentTab, setRegisterRole }) => {
   const { user } = useAuth();
@@ -43,14 +43,14 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
       <header className="landing-hero" style={{ backgroundImage: `url(${laundryBg})` }}>
         <div className="hero-overlay"></div>
         <div className="hero-content-wrapper main-content" style={{ display: 'flex', gap: '3rem', alignItems: 'center', justifyContent: 'space-between', zIndex: 2, position: 'relative', width: '100%', flexWrap: 'wrap' }}>
-          <div className="hero-card glass-panel" style={{ flex: '1 1 500px', maxWidth: '650px', padding: '3rem' }}>
+          <div className="hero-card glass-panel" style={{ flex: '1 1 500px', maxWidth: '600px' }}>
             <span className="hero-badge">🧼 Smart Laundry Platform</span>
             <h1 className="hero-title">
               Fresh Clothes,<br />
               <span className="gradient-text">Zero Effort.</span>
             </h1>
             <p className="hero-description">
-              WashEase is the ultimate marketplace connecting you with the finest local laundry professionals. 
+              WashEase is the ultimate marketplace connecting you with the finest local laundry professionals.
               Schedule pickups, track your wash cycle, and pay transparently—all from the comfort of your home.
             </p>
 
@@ -80,12 +80,11 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
               </div>
             </div>
           </div>
-          <div className="hero-image-container animate-float" style={{ flex: '1 1 400px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <img 
-              src={laundryHeroPurple} 
-              alt="WashEase Smart Laundry" 
-              style={{ maxWidth: '100%', maxHeight: '480px', objectFit: 'contain', borderRadius: '24px', boxShadow: '0 20px 40px rgba(138, 43, 226, 0.35)', border: '1px solid rgba(138, 43, 226, 0.2)' }}
-            />
+
+          <div style={{ flex: '1 1 350px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <div className="hero-cartoon-card">
+              <img src={laundryCartoon} alt="Cute WashEase Washer Mascot" className="hero-cartoon-img" />
+            </div>
           </div>
         </div>
       </header>
@@ -174,7 +173,7 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
           <div className="offers-column">
             <h3 className="column-title">🔥 Live Seasonal Offers</h3>
             <div className="offers-grid-vertical">
-              
+
               {/* Offer 1 */}
               <div className="offer-promo-card glass-panel">
                 <span className="discount-badge badge-monsoon">20% OFF</span>
@@ -281,8 +280,8 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
             <div className="partner-content">
               <h2>Run a Laundry Business?</h2>
               <p>
-                Grow your sales and reach new customers by joining WashEase as a laundry vendor. 
-                Gain access to order management dashboards, client reports, automated invoicing, 
+                Grow your sales and reach new customers by joining WashEase as a laundry vendor.
+                Gain access to order management dashboards, client reports, automated invoicing,
                 and scale up through our exclusive Vendor Rewards Level Commission tiers.
               </p>
               <button className="btn btn-primary btn-lg" onClick={handleVendorCTA}>

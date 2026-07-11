@@ -292,7 +292,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
             <div className="glass-panel stat-card">
               <div className="stat-info">
                 <h4>Monthly Revenue</h4>
-                <p>${parseFloat(stats.revenue).toFixed(2)}</p>
+                <p>Rs {parseFloat(stats.revenue).toFixed(2)}</p>
               </div>
               <div className="stat-icon" style={{ color: 'var(--success)', background: 'rgba(46, 196, 182, 0.1)' }}>💵</div>
             </div>
@@ -582,7 +582,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
                         <td>{o.service_type}</td>
                         <td>{o.clothes_weight} kg</td>
                         <td>{o.status}</td>
-                        <td>{o.total_amount ? `$${parseFloat(o.total_amount).toFixed(2)}` : 'N/A'}</td>
+                        <td>{o.total_amount ? `Rs ${parseFloat(o.total_amount).toFixed(2)}` : 'N/A'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -688,12 +688,12 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
               </p>
               <p style={{ display: 'flex', justify: 'space-between', marginBottom: '0.3rem' }}>
                 <span>Estimated Rate per kg:</span>
-                <b>$10.00 / kg</b>
+                <b>Rs 100.00 / kg</b>
               </p>
               <hr style={{ margin: '0.5rem 0', borderColor: 'var(--card-border)' }} />
               <h4 style={{ display: 'flex', justify: 'space-between', color: 'var(--success)' }}>
                 <span>Base Laundry Charges:</span>
-                <b>${((parseFloat(actualWeight) || 0) * 10).toFixed(2)}</b>
+                <b>Rs {((parseFloat(actualWeight) || 0) * 100).toFixed(2)}</b>
               </h4>
             </div>
 
@@ -712,7 +712,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Service Fee ($)</label>
+                <label className="form-label">Service Fee (Rs)</label>
                 <input 
                   type="number" 
                   step="0.01" 
@@ -724,7 +724,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
               </div>
 
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label">Additional Surcharge Fee ($)</label>
+                <label className="form-label">Additional Surcharge Fee (Rs)</label>
                 <input 
                   type="number" 
                   step="0.01" 

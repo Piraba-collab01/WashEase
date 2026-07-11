@@ -184,7 +184,7 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
 
               {/* Offer 2 */}
               <div className="offer-promo-card glass-panel">
-                <span className="discount-badge badge-first">FLAT $5 OFF</span>
+                <span className="discount-badge badge-first">FLAT Rs 500 OFF</span>
                 <div className="offer-details">
                   <h4>First Wash Welcome Deal</h4>
                   <p>New to WashEase? Enjoy a discount on your very first laundry pick-up service.</p>
@@ -221,7 +221,7 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
             <div className="rewards-program-card glass-panel">
               <div className="rewards-intro">
                 <h4>Earn Points, Redeem Free Washes!</h4>
-                <p>Every dollar you spend on bookings translates to loyalty rewards to make wash day even sweeter.</p>
+                <p>Every rupee you spend on bookings translates to loyalty rewards to make wash day even sweeter.</p>
               </div>
 
               <div className="rewards-steps">
@@ -229,7 +229,7 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
                   <div className="reward-step-icon">🧼</div>
                   <div className="reward-step-text">
                     <h5>1. Spend & Earn</h5>
-                    <p>Get 1 Loyalty Point for every $1 spent on any wash, dry, or ironing service.</p>
+                    <p>Get 1 Loyalty Point for every Rs 100 spent on any wash, dry, or ironing service.</p>
                   </div>
                 </div>
 

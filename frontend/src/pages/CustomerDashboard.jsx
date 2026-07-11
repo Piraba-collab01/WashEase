@@ -633,7 +633,7 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
                                 if (d.success && d.data.invoice) {
                                   // Open raw invoice viewer html in new window
                                   const invoiceId = d.data.invoice.id;
-                                  alert(`Total amount was: $${d.data.invoice.total_amount}. Paid! Check notifications.`);
+                                  alert(`Total amount was: Rs ${d.data.invoice.total_amount}. Paid! Check notifications.`);
                                 }
                               }}
                             >
@@ -896,20 +896,20 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
             }}>
               <p style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span>Laundry Charges ({selectedInvoice.order.clothes_weight} kg):</span>
-                <b>${parseFloat(selectedInvoice.invoice.laundry_charges).toFixed(2)}</b>
+                <b>Rs {parseFloat(selectedInvoice.invoice.laundry_charges).toFixed(2)}</b>
               </p>
               <p style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span>Service Charges:</span>
-                <b>${parseFloat(selectedInvoice.invoice.service_charges).toFixed(2)}</b>
+                <b>Rs {parseFloat(selectedInvoice.invoice.service_charges).toFixed(2)}</b>
               </p>
               <p style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span>Taxes (5%):</span>
-                <b>${parseFloat(selectedInvoice.invoice.taxes).toFixed(2)}</b>
+                <b>Rs {parseFloat(selectedInvoice.invoice.taxes).toFixed(2)}</b>
               </p>
               <hr style={{ margin: '0.5rem 0', borderColor: 'var(--card-border)' }} />
               <h4 style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--primary-light)' }}>
                 <span>Total Due Amount:</span>
-                <b>${parseFloat(selectedInvoice.invoice.total_amount).toFixed(2)}</b>
+                <b>Rs {parseFloat(selectedInvoice.invoice.total_amount).toFixed(2)}</b>
               </h4>
             </div>
 
@@ -918,7 +918,7 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
 
             <form onSubmit={handleConfirmPaymentSubmit}>
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label" style={{ color: 'var(--text-main)', fontWeight: 'bold' }}>Enter Actual Paid Amount ($)</label>
+                <label className="form-label" style={{ color: 'var(--text-main)', fontWeight: 'bold' }}>Enter Actual Paid Amount (Rs)</label>
                 <input 
                   type="number" 
                   step="0.01" 

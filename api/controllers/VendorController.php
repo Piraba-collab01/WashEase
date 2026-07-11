@@ -180,13 +180,13 @@ class VendorController {
                     $row['service_type'],
                     $row['clothes_weight'] . " kg",
                     $row['status'],
-                    "$" . number_format($amt, 2)
+                    "Rs " . number_format($amt, 2)
                 ];
             }
 
             if ($export) {
                 $headers = ["Tracking #", "Customer", "Service", "Weight", "Status", "Amount"];
-                $titleExtended = $title . " - Total Revenue: $" . number_format($totalRevenue, 2) . " ($orderCount Orders)";
+                $titleExtended = $title . " - Total Revenue: Rs " . number_format($totalRevenue, 2) . " ($orderCount Orders)";
                 $pdfContent = PdfService::generateReportPDF($titleExtended, $headers, $tableData);
                 
                 header('Content-Type: application/pdf');

@@ -229,7 +229,7 @@ class AdminController {
                         $row['shop_name'],
                         $row['full_name'],
                         $row['paid_at'],
-                        "$" . number_format($row['amount_paid'], 2)
+                        "Rs " . number_format($row['amount_paid'], 2)
                     ];
                 }
             } else if ($reportType === 'vendor') {
@@ -257,7 +257,7 @@ class AdminController {
                         $row['commission_pct'] . "%",
                         $row['total_orders'],
                         $row['completed_orders'],
-                        "$" . number_format($row['total_earned'] ?? 0, 2)
+                        "Rs " . number_format($row['total_earned'] ?? 0, 2)
                     ];
                 }
             } else if ($reportType === 'complaints') {
@@ -307,7 +307,7 @@ class AdminController {
                         $row['email'],
                         $row['contact_number'],
                         $row['orders_count'],
-                        "$" . number_format($row['total_spent'] ?? 0, 2)
+                        "Rs " . number_format($row['total_spent'] ?? 0, 2)
                     ];
                 }
             }

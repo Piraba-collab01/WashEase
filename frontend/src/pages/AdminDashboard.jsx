@@ -449,7 +449,7 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
             <div className="glass-panel stat-card">
               <div className="stat-info">
                 <h4>Total Revenue</h4>
-                <p>${parseFloat(stats.revenue).toFixed(2)}</p>
+                <p>Rs {parseFloat(stats.revenue).toFixed(2)}</p>
               </div>
               <div className="stat-icon" style={{ color: 'var(--success)' }}>💵</div>
             </div>
@@ -749,9 +749,9 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
                       <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{alert.tracking_number}</td>
                       <td>{alert.shop_name}</td>
                       <td>{alert.customer_name}</td>
-                      <td>${parseFloat(alert.vendor_amount).toFixed(2)}</td>
-                      <td style={{ color: 'var(--danger)', fontWeight: 'bold' }}>${parseFloat(alert.customer_amount).toFixed(2)}</td>
-                      <td style={{ color: 'var(--accent)', fontWeight: 'bold' }}>${parseFloat(alert.difference).toFixed(2)}</td>
+                      <td>Rs {parseFloat(alert.vendor_amount).toFixed(2)}</td>
+                      <td style={{ color: 'var(--danger)', fontWeight: 'bold' }}>Rs {parseFloat(alert.customer_amount).toFixed(2)}</td>
+                      <td style={{ color: 'var(--accent)', fontWeight: 'bold' }}>Rs {parseFloat(alert.difference).toFixed(2)}</td>
                       <td style={{ fontSize: '0.8rem' }}>{alert.created_at}</td>
                       <td>
                         <span className={`badge ${alert.status === 'Resolved' ? 'badge-active' : 'badge-danger'}`}>

@@ -210,4 +210,46 @@ class VendorController {
             return ["success" => false, "message" => "Report generation failed: " . $e->getMessage()];
         }
     }
+
+    public function submitCommissionPayment($userId, $data) {
+        $amount = floatval($data['amount'] ?? 0);
+        $transactionRef = trim($data['transaction_ref'] ?? '');
+
+        if ($amount <= 0 || empty($transactionRef)) {
+            return ["success" => false, "message" => "Amount and transaction reference are required."];
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            // Fetch vendor shop name
+            $stmt = $this->db->prepare("SELECT shop_name FROM vendors WHERE user_id = ?");
+            $stmt->execute([$userId]);
+            $vendor = $stmt->fetch();
+            $shopName = $vendor['shop_name'] ?? "Vendor #$userId";
+
+            // Insert payment submission
+            $stmt = $this->db->prepare("
+                INSERT INTO commission_payments (vendor_id, amount, transaction_ref, status) 
+                VALUES (?, ?, ?, 'Pending')
+            ");
+            $stmt->execute([$userId, $amount, $transactionRef]);
+
+            // Notify all administrators
+            $stmtAdmins = $this->db->query("SELECT id FROM users WHERE role = 'admin'");
+            $admins = $stmtAdmins->fetchAll(PDO::FETCH_COLUMN);
+            
+            $msg = "Vendor '$shopName' has submitted a commission payment of Rs " . number_format($amount, 2) . " (Ref: $transactionRef) for approval.";
+            $stmtNotify = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+            foreach ($admins as $adminId) {
+                $stmtNotify->execute([$adminId, $msg]);
+            }
+
+            $this->db->commit();
+            return ["success" => true, "message" => "Commission payment submitted to admin for confirmation."];
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return ["success" => false, "message" => $e->getMessage()];
+        }
+    }
 }

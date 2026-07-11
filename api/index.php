@@ -228,6 +228,14 @@ switch ($action) {
         $response = $vendor->getReports($_SESSION['user_id'], $_GET);
         break;
 
+    case 'vendor-submit-commission-payment':
+        requireRole(['vendor']);
+        if ($method === 'POST') {
+            $vendor = new VendorController();
+            $response = $vendor->submitCommissionPayment($_SESSION['user_id'], getJsonInput());
+        }
+        break;
+
     // === ADMIN ROUTING ===
     case 'admin-stats':
         requireRole(['admin']);
@@ -310,6 +318,28 @@ switch ($action) {
         requireRole(['admin']);
         $admin = new AdminController();
         $response = $admin->getAdminReports($_GET);
+        break;
+
+    case 'admin-list-commission-payments':
+        requireRole(['admin']);
+        $admin = new AdminController();
+        $response = $admin->listCommissionPayments();
+        break;
+
+    case 'admin-approve-commission-payment':
+        requireRole(['admin']);
+        if ($method === 'POST') {
+            $admin = new AdminController();
+            $response = $admin->approveCommissionPayment(getJsonInput());
+        }
+        break;
+
+    case 'admin-reject-commission-payment':
+        requireRole(['admin']);
+        if ($method === 'POST') {
+            $admin = new AdminController();
+            $response = $admin->rejectCommissionPayment(getJsonInput());
+        }
         break;
 
     // === COMPLAINT ROUTING ===

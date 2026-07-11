@@ -415,4 +415,126 @@ class AdminController {
             return ["success" => false, "message" => $e->getMessage()];
         }
     }
+
+    public function listCommissionPayments() {
+        try {
+            $stmt = $this->db->query("
+                SELECT cp.id as payment_id, cp.amount, cp.transaction_ref, cp.payment_date, cp.status as payment_status, v.shop_name, v.owner_name, v.user_id as vendor_id
+                FROM commission_payments cp
+                JOIN vendors v ON cp.vendor_id = v.user_id
+                ORDER BY cp.payment_date DESC
+            ");
+            $payments = $stmt->fetchAll();
+            return ["success" => true, "data" => $payments];
+        } catch (Exception $e) {
+            return ["success" => false, "message" => $e->getMessage()];
+        }
+    }
+
+    public function approveCommissionPayment($data) {
+        $paymentId = intval($data['payment_id'] ?? 0);
+        if ($paymentId <= 0) {
+            return ["success" => false, "message" => "Payment ID is required."];
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            // Fetch payment details
+            $stmt = $this->db->prepare("SELECT vendor_id, amount, transaction_ref, status FROM commission_payments WHERE id = ?");
+            $stmt->execute([$paymentId]);
+            $payment = $stmt->fetch();
+
+            if (!$payment) {
+                throw new Exception("Payment record not found.");
+            }
+
+            if ($payment['status'] !== 'Pending') {
+                throw new Exception("Payment has already been processed.");
+            }
+
+            $vendorId = $payment['vendor_id'];
+            $amount = floatval($payment['amount']);
+
+            // Update status
+            $stmt = $this->db->prepare("UPDATE commission_payments SET status = 'Approved' WHERE id = ?");
+            $stmt->execute([$paymentId]);
+
+            // Deduct from vendor's unpaid_commission
+            $stmt = $this->db->prepare("UPDATE vendors SET unpaid_commission = GREATEST(0.00, unpaid_commission - ?) WHERE user_id = ?");
+            $stmt->execute([$amount, $vendorId]);
+
+            // Fetch updated unpaid commission
+            $stmt = $this->db->prepare("SELECT unpaid_commission FROM vendors WHERE user_id = ?");
+            $stmt->execute([$vendorId]);
+            $vendor = $stmt->fetch();
+            $newUnpaid = floatval($vendor['unpaid_commission'] ?? 0.00);
+
+            // Automatically unblock if unpaid commission is now below 1000
+            if ($newUnpaid < 1000) {
+                // Check if user status is blocked, then change to active
+                $stmtUser = $this->db->prepare("SELECT status FROM users WHERE id = ?");
+                $stmtUser->execute([$vendorId]);
+                $userStatus = $stmtUser->fetchColumn();
+                if ($userStatus === 'blocked') {
+                    $stmtUpdateStatus = $this->db->prepare("UPDATE users SET status = 'active' WHERE id = ?");
+                    $stmtUpdateStatus->execute([$vendorId]);
+                }
+            }
+
+            // Create notification for vendor
+            $msg = "Your commission payment submission of Rs " . number_format($amount, 2) . " (Ref: {$payment['transaction_ref']}) was APPROVED. Your current outstanding balance is Rs " . number_format($newUnpaid, 2) . ".";
+            $stmtNotify = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+            $stmtNotify->execute([$vendorId, $msg]);
+
+            $this->db->commit();
+            return ["success" => true, "message" => "Payment submission approved and vendor balance updated."];
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return ["success" => false, "message" => $e->getMessage()];
+        }
+    }
+
+    public function rejectCommissionPayment($data) {
+        $paymentId = intval($data['payment_id'] ?? 0);
+        $reason = trim($data['reason'] ?? 'Invalid details or receipt.');
+
+        if ($paymentId <= 0) {
+            return ["success" => false, "message" => "Payment ID is required."];
+        }
+
+        try {
+            $this->db->beginTransaction();
+
+            // Fetch payment details
+            $stmt = $this->db->prepare("SELECT vendor_id, amount, transaction_ref, status FROM commission_payments WHERE id = ?");
+            $stmt->execute([$paymentId]);
+            $payment = $stmt->fetch();
+
+            if (!$payment) {
+                throw new Exception("Payment record not found.");
+            }
+
+            if ($payment['status'] !== 'Pending') {
+                throw new Exception("Payment has already been processed.");
+            }
+
+            $vendorId = $payment['vendor_id'];
+
+            // Update status
+            $stmt = $this->db->prepare("UPDATE commission_payments SET status = 'Rejected' WHERE id = ?");
+            $stmt->execute([$paymentId]);
+
+            // Create notification for vendor
+            $msg = "Your commission payment submission of Rs " . number_format(floatval($payment['amount']), 2) . " (Ref: {$payment['transaction_ref']}) was REJECTED. Reason: " . $reason;
+            $stmtNotify = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+            $stmtNotify->execute([$vendorId, $msg]);
+
+            $this->db->commit();
+            return ["success" => true, "message" => "Payment submission rejected."];
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return ["success" => false, "message" => $e->getMessage()];
+        }
+    }
 }

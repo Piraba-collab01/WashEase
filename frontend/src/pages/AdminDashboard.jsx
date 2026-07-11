@@ -42,6 +42,9 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
   const [silverPct, setSilverPct] = useState('10.00');
   const [goldPct, setGoldPct] = useState('5.00');
 
+  // Commission Payments
+  const [commissionPayments, setCommissionPayments] = useState([]);
+
   // Fraud Alerts
   const [fraudAlerts, setFraudAlerts] = useState([]);
 
@@ -106,6 +109,13 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
       const dataFraud = await resFraud.json();
       if (dataFraud.success) {
         setFraudAlerts(dataFraud.data || []);
+      }
+
+      // 8. Fetch Commission Payments
+      const resComm = await fetchWithAuth(`http://localhost:8000/index.php?action=admin-list-commission-payments`);
+      const dataComm = await resComm.json();
+      if (dataComm.success) {
+        setCommissionPayments(dataComm.data || []);
       }
 
       // 7. Load Reports if on report tab
@@ -206,6 +216,36 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
         setWarningMessage('');
       } else {
         setError(data.message || 'Failed to send warning.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleProcessPayment = async (paymentId, actionType, reason = '') => {
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    const action = actionType === 'approve' ? 'admin-approve-commission-payment' : 'admin-reject-commission-payment';
+    
+    try {
+      const res = await fetchWithAuth(`http://localhost:8000/index.php?action=${action}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          payment_id: paymentId,
+          reason: reason
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess(data.message);
+        loadAdminData();
+      } else {
+        setError(data.message || 'Failed to process payment.');
       }
     } catch (err) {
       console.error(err);
@@ -572,37 +612,108 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
         </div>
       )}
 
-      {/* 3. Commission Settings Management */}
+      {/* 3. Commission Settings & Payments Management */}
       {subTab === 'admin-commissions' && (
-        <div className="glass-panel" style={{ padding: '2.5rem', maxWidth: '600px', margin: '0 auto', animation: 'fadeIn 0.4s ease-out' }}>
-          <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Commission Rate Rules</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
-            Set percentage commissions collected by the platform for each reward level. Level updates automatically reduce vendor commissions based on these rules.
-          </p>
+        <div style={{ display: 'flex', gap: '2rem', flexDirection: 'row', flexWrap: 'wrap', animation: 'fadeIn 0.4s ease-out' }}>
+          
+          {/* Commission Rules Form */}
+          <div className="glass-panel" style={{ padding: '2.5rem', flex: '1 1 400px' }}>
+            <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Commission Rate Rules</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
+              Set percentage commissions collected by the platform for each reward level. Level updates automatically reduce vendor commissions based on these rules.
+            </p>
 
-          {error && <div style={{ background: 'rgba(231, 29, 54, 0.12)', color: 'var(--danger)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1.25rem' }}>⚠️ {error}</div>}
-          {success && <div style={{ background: 'rgba(46, 196, 182, 0.12)', color: 'var(--success)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1.25rem' }}>✅ {success}</div>}
+            {error && <div style={{ background: 'rgba(231, 29, 54, 0.12)', color: 'var(--danger)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1.25rem' }}>⚠️ {error}</div>}
+            {success && <div style={{ background: 'rgba(46, 196, 182, 0.12)', color: 'var(--success)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1.25rem' }}>✅ {success}</div>}
 
-          <form onSubmit={handleUpdateCommission}>
-            <div className="form-group">
-              <label className="form-label">Bronze Commission Level % (0 - 50 Orders)</label>
-              <input type="number" step="0.01" min="0" max="100" className="form-control" value={bronzePct} onChange={(e) => setBronzePct(e.target.value)} required />
-            </div>
+            <form onSubmit={handleUpdateCommission}>
+              <div className="form-group">
+                <label className="form-label">Bronze Commission Level % (0 - 50 Orders)</label>
+                <input type="number" step="0.01" min="0" max="100" className="form-control" value={bronzePct} onChange={(e) => setBronzePct(e.target.value)} required />
+              </div>
 
-            <div className="form-group">
-              <label className="form-label">Silver Commission Level % (51 - 100 Orders)</label>
-              <input type="number" step="0.01" min="0" max="100" className="form-control" value={silverPct} onChange={(e) => setSilverPct(e.target.value)} required />
-            </div>
+              <div className="form-group">
+                <label className="form-label">Silver Commission Level % (51 - 100 Orders)</label>
+                <input type="number" step="0.01" min="0" max="100" className="form-control" value={silverPct} onChange={(e) => setSilverPct(e.target.value)} required />
+              </div>
 
-            <div className="form-group" style={{ marginBottom: '2rem' }}>
-              <label className="form-label">Gold Commission Level % (101+ Orders)</label>
-              <input type="number" step="0.01" min="0" max="100" className="form-control" value={goldPct} onChange={(e) => setGoldPct(e.target.value)} required />
-            </div>
+              <div className="form-group" style={{ marginBottom: '2rem' }}>
+                <label className="form-label">Gold Commission Level % (101+ Orders)</label>
+                <input type="number" step="0.01" min="0" max="100" className="form-control" value={goldPct} onChange={(e) => setGoldPct(e.target.value)} required />
+              </div>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.8rem' }} disabled={loading}>
-              {loading ? 'Saving rules...' : 'Update Commission Rules'}
-            </button>
-          </form>
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', padding: '0.8rem' }} disabled={loading}>
+                {loading ? 'Saving rules...' : 'Update Commission Rules'}
+              </button>
+            </form>
+          </div>
+
+          {/* Commission Payment Receipts Verification Panel */}
+          <div className="glass-panel" style={{ padding: '2.5rem', flex: '2 1 600px' }}>
+            <h2 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Vendor Payment Confirmations</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '2rem' }}>
+              Verify commission bank transfer submissions made by vendors. Approving will update their outstanding balances and automatically reactivate accounts if previously blocked.
+            </p>
+
+            {commissionPayments.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '2rem' }}>No payment submissions found.</p>
+            ) : (
+              <div className="table-container">
+                <table className="custom-table" style={{ fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Shop Name</th>
+                      <th>Amount Paid</th>
+                      <th>Transaction Ref</th>
+                      <th>Date Submitted</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {commissionPayments.map(p => (
+                      <tr key={p.payment_id} style={p.payment_status === 'Pending' ? { background: 'rgba(255, 159, 28, 0.03)' } : {}}>
+                        <td>#{p.payment_id}</td>
+                        <td><b>{p.shop_name}</b><br/><span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Owner: {p.owner_name}</span></td>
+                        <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>Rs {parseFloat(p.amount).toFixed(2)}</td>
+                        <td style={{ fontFamily: 'monospace' }}>{p.transaction_ref}</td>
+                        <td style={{ fontSize: '0.75rem' }}>{p.payment_date}</td>
+                        <td>
+                          <span className={`badge ${p.payment_status === 'Approved' ? 'badge-active' : p.payment_status === 'Rejected' ? 'badge-danger' : 'badge-pending'}`}>
+                            {p.payment_status}
+                          </span>
+                        </td>
+                        <td>
+                          {p.payment_status === 'Pending' && (
+                            <div style={{ display: 'flex', gap: '0.3rem' }}>
+                              <button 
+                                className="btn btn-primary" 
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
+                                onClick={() => handleProcessPayment(p.payment_id, 'approve')}
+                              >
+                                Approve
+                              </button>
+                              <button 
+                                className="btn btn-danger" 
+                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.7rem' }}
+                                onClick={() => {
+                                  const reason = prompt("Enter rejection reason:", "Invalid transaction details or reference.");
+                                  if (reason) handleProcessPayment(p.payment_id, 'reject', reason);
+                                }}
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

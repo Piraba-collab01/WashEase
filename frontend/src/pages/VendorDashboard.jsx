@@ -28,6 +28,11 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
   const [profileCloseTime, setProfileCloseTime] = useState(user?.details?.closing_time || '20:00');
   const [profilePassword, setProfilePassword] = useState('');
 
+  // Commission Payment Modal State
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentRef, setPaymentRef] = useState('');
+
   // UI status feedback
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -93,6 +98,38 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
 
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    setLoading(true);
+
+    try {
+      const res = await fetchWithAuth(`http://localhost:8000/index.php?action=vendor-submit-commission-payment`, {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: parseFloat(paymentAmount),
+          transaction_ref: paymentRef
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSuccess(data.message);
+        setShowPaymentModal(false);
+        setPaymentAmount('');
+        setPaymentRef('');
+        loadVendorData();
+      } else {
+        setError(data.message || 'Failed to submit payment.');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('An error occurred.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -267,13 +304,23 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
               <div className="stat-icon" style={{ color: 'var(--primary-light)', background: 'rgba(138, 43, 226, 0.1)' }}>🏆</div>
             </div>
             <div className="glass-panel stat-card" style={parseFloat(rewardStats.unpaid_commission || 0) >= 1000 ? { border: '2px solid var(--danger)', boxShadow: '0 0 15px rgba(231, 29, 54, 0.3)' } : {}}>
-              <div className="stat-info">
+              <div className="stat-info" style={{ width: '100%' }}>
                 <h4>Unpaid Commission</h4>
-                <p style={{ color: parseFloat(rewardStats.unpaid_commission || 0) >= 1000 ? 'var(--danger)' : 'var(--text-main)', fontWeight: 800 }}>
-                  Rs {parseFloat(rewardStats.unpaid_commission || 0).toFixed(2)}
-                </p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+                  <p style={{ color: parseFloat(rewardStats.unpaid_commission || 0) >= 1000 ? 'var(--danger)' : 'var(--text-main)', fontWeight: 800, margin: 0 }}>
+                    Rs {parseFloat(rewardStats.unpaid_commission || 0).toFixed(2)}
+                  </p>
+                  {parseFloat(rewardStats.unpaid_commission || 0) > 0 && (
+                    <button 
+                      className="btn btn-primary" 
+                      style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', fontWeight: 'bold' }}
+                      onClick={() => setShowPaymentModal(true)}
+                    >
+                      Clear Dues
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="stat-icon" style={{ color: parseFloat(rewardStats.unpaid_commission || 0) >= 1000 ? 'var(--danger)' : 'var(--accent)', background: parseFloat(rewardStats.unpaid_commission || 0) >= 1000 ? 'rgba(231, 29, 54, 0.1)' : 'rgba(247, 37, 133, 0.1)' }}>💳</div>
             </div>
           </div>
 
@@ -693,6 +740,70 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
                   {loading ? 'Creating Bill...' : 'Generate Invoice'}
                 </button>
                 <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setBillingOrder(null)}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Commission Payment Submission Modal */}
+      {showPaymentModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-panel" style={{ maxWidth: '500px', animation: 'fadeIn 0.3s ease-out' }}>
+            <h3 style={{ color: 'var(--primary)', marginBottom: '0.25rem' }}>Submit Commission Payment</h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+              Transfer the outstanding dues to our central bank account and provide the reference.
+            </p>
+
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              padding: '1rem',
+              borderRadius: '8px',
+              border: '1px solid var(--card-border)',
+              marginBottom: '1.5rem',
+              fontSize: '0.85rem'
+            }}>
+              <p><b>Bank Name:</b> WashEase Central Trust Bank</p>
+              <p><b>Account Number:</b> 1230-5847-9201-4827</p>
+              <p><b>Branch:</b> Colombo Head Office</p>
+              <p style={{ marginTop: '0.5rem', color: 'var(--warning)', fontWeight: 'bold' }}>
+                Please transfer exactly Rs {parseFloat(rewardStats.unpaid_commission || 0).toFixed(2)}
+              </p>
+            </div>
+
+            <form onSubmit={handlePaymentSubmit}>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label className="form-label">Payment Amount (Rs)</label>
+                <input 
+                  type="number" 
+                  step="0.01" 
+                  className="form-control" 
+                  value={paymentAmount} 
+                  onChange={(e) => setPaymentAmount(e.target.value)} 
+                  placeholder={`e.g. ${parseFloat(rewardStats.unpaid_commission || 0).toFixed(2)}`}
+                  required
+                />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+                <label className="form-label">Transaction Reference ID / Bank Slip Number</label>
+                <input 
+                  type="text" 
+                  className="form-control" 
+                  value={paymentRef} 
+                  onChange={(e) => setPaymentRef(e.target.value)} 
+                  placeholder="e.g. TXN9876543210"
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1 }} disabled={loading}>
+                  {loading ? 'Submitting...' : 'Submit Confirmation'}
+                </button>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowPaymentModal(false)}>
                   Cancel
                 </button>
               </div>

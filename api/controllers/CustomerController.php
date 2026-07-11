@@ -18,8 +18,8 @@ class CustomerController {
         // If lat/lng are 0, use default coordinates for the city (e.g. central district coordinates)
         if ($lat == 0 && $lng == 0) {
             // Default center coordinates if user hasn't allowed geolocation
-            $lat = 12.9716; // Example (Bangalore Center)
-            $lng = 77.5946;
+            $lat = 6.9271; // Colombo Center
+            $lng = 79.8612;
         }
 
         try {
@@ -39,9 +39,11 @@ class CustomerController {
                     u.email,
                     -- Haversine formula to compute distance in Kilometers
                     (6371 * acos(
-                        cos(radians(:lat)) * cos(radians(v.latitude)) * 
-                        cos(radians(v.longitude) - radians(:lng)) + 
-                        sin(radians(:lat)) * sin(radians(v.latitude))
+                        LEAST(1.0, GREATEST(-1.0, 
+                            cos(radians(:lat1)) * cos(radians(v.latitude)) * 
+                            cos(radians(v.longitude) - radians(:lng)) + 
+                            sin(radians(:lat2)) * sin(radians(v.latitude))
+                        ))
                     )) AS distance
                 FROM vendors v
                 JOIN users u ON v.user_id = u.id
@@ -55,7 +57,8 @@ class CustomerController {
 
             $stmt = $this->db->prepare($query);
             $params = [
-                ':lat' => $lat,
+                ':lat1' => $lat,
+                ':lat2' => $lat,
                 ':lng' => $lng
             ];
             if (!empty($district)) {

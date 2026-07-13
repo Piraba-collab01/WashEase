@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS vendors (
     closing_time TIME NOT NULL,
     reward_level ENUM('Bronze', 'Silver', 'Gold') DEFAULT 'Bronze',
     commission_pct DECIMAL(5,2) DEFAULT 15.00,
+    services_offered TEXT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 

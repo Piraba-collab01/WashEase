@@ -83,7 +83,7 @@ class AuthController {
                     throw new Exception("Please fill in all vendor fields.");
                 }
 
-                $stmt = $this->db->prepare("INSERT INTO vendors (user_id, shop_name, owner_name, contact_number, shop_address, district, latitude, longitude, opening_time, closing_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $this->db->prepare("INSERT INTO vendors (user_id, shop_name, owner_name, contact_number, shop_address, district, latitude, longitude, opening_time, closing_time, services_offered) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Wash Only,Wash & Iron,Dry Cleaning,Ironing')");
                 $stmt->execute([$userId, $shopName, $ownerName, $phone, $shopAddress, $district, $lat, $lng, $openTime, $closeTime]);
             }
 

@@ -107,6 +107,11 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
 
   const handleBookService = (shop) => {
     setSelectedVendor(shop);
+    if (shop.services && shop.services.length > 0) {
+      setServiceType(shop.services[0]);
+    } else {
+      setServiceType('Wash Only');
+    }
     setSubTab('book');
   };
 
@@ -462,10 +467,18 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
               <div className="form-group">
                 <label className="form-label">Service Type</label>
                 <select className="form-control" value={serviceType} onChange={(e) => setServiceType(e.target.value)}>
-                  <option value="Wash Only">Wash Only</option>
-                  <option value="Wash & Iron">Wash & Iron</option>
-                  <option value="Dry Cleaning">Dry Cleaning</option>
-                  <option value="Ironing">Ironing</option>
+                  {selectedVendor && selectedVendor.services && selectedVendor.services.length > 0 ? (
+                    selectedVendor.services.map((service) => (
+                      <option key={service} value={service}>{service}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value="Wash Only">Wash Only</option>
+                      <option value="Wash & Iron">Wash & Iron</option>
+                      <option value="Dry Cleaning">Dry Cleaning</option>
+                      <option value="Ironing">Ironing</option>
+                    </>
+                  )}
                 </select>
               </div>
             </div>

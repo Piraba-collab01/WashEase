@@ -14,7 +14,7 @@ class VendorController {
     public function getProfile($userId) {
         try {
             $stmt = $this->db->prepare("
-                SELECT u.id as vendor_id, u.username, u.email, v.shop_name, v.owner_name, v.contact_number, v.shop_address, v.district, v.latitude, v.longitude, v.opening_time, v.closing_time, v.reward_level, v.commission_pct, v.unpaid_commission
+                SELECT u.id as vendor_id, u.username, u.email, v.shop_name, v.owner_name, v.contact_number, v.shop_address, v.district, v.latitude, v.longitude, v.opening_time, v.closing_time, v.reward_level, v.commission_pct, v.unpaid_commission, v.services_offered
                 FROM users u
                 JOIN vendors v ON u.id = v.user_id
                 WHERE u.id = ?");
@@ -40,6 +40,7 @@ class VendorController {
         $openTime = $data['opening_time'] ?? '08:00';
         $closeTime = $data['closing_time'] ?? '20:00';
         $password = $data['password'] ?? '';
+        $servicesOffered = trim($data['services_offered'] ?? '');
 
         if (empty($email) || empty($phone) || empty($shopAddress) || empty($shopName) || empty($ownerName)) {
             return ["success" => false, "message" => "Email, Phone, Shop Name, Owner Name, and Shop Address are required."];
@@ -70,9 +71,9 @@ class VendorController {
             // Update vendor
             $stmt = $this->db->prepare("
                 UPDATE vendors 
-                SET shop_name = ?, owner_name = ?, contact_number = ?, shop_address = ?, opening_time = ?, closing_time = ?
+                SET shop_name = ?, owner_name = ?, contact_number = ?, shop_address = ?, opening_time = ?, closing_time = ?, services_offered = ?
                 WHERE user_id = ?");
-            $stmt->execute([$shopName, $ownerName, $phone, $shopAddress, $openTime, $closeTime, $userId]);
+            $stmt->execute([$shopName, $ownerName, $phone, $shopAddress, $openTime, $closeTime, $servicesOffered, $userId]);
 
             $this->db->commit();
 

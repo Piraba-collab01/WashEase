@@ -36,6 +36,7 @@ class CustomerController {
                     v.closing_time,
                     v.latitude,
                     v.longitude,
+                    v.services_offered,
                     u.email,
                     -- Haversine formula to compute distance in Kilometers
                     (6371 * acos(
@@ -68,11 +69,16 @@ class CustomerController {
             $stmt->execute($params);
             $shops = $stmt->fetchAll();
 
-            // Simulate rating and available services
+            // Simulate rating and load services from DB
             foreach ($shops as &$shop) {
                 $shop['distance'] = round($shop['distance'], 2); // rounded distance in km
                 $shop['rating'] = round(4.0 + (mt_rand(0, 10) / 10), 1); // Mock rating 4.0 - 5.0
-                $shop['services'] = ["Wash Only", "Wash & Iron", "Dry Cleaning", "Ironing"];
+                $servicesStr = $shop['services_offered'] ?? '';
+                if (!empty($servicesStr)) {
+                    $shop['services'] = array_map('trim', explode(',', $servicesStr));
+                } else {
+                    $shop['services'] = ["Wash Only", "Wash & Iron", "Dry Cleaning", "Ironing"];
+                }
             }
 
             return ["success" => true, "data" => $shops];

@@ -27,6 +27,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
   const [profileOpenTime, setProfileOpenTime] = useState(user?.details?.opening_time || '08:00');
   const [profileCloseTime, setProfileCloseTime] = useState(user?.details?.closing_time || '20:00');
   const [profilePassword, setProfilePassword] = useState('');
+  const [selectedServices, setSelectedServices] = useState([]);
 
   // Commission Payment Modal State
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -41,6 +42,20 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
   useEffect(() => {
     loadVendorData();
   }, [subTab]);
+
+  useEffect(() => {
+    if (user) {
+      setProfileEmail(user.email || '');
+      setProfilePhone(user.details?.contact_number || '');
+      setProfileAddress(user.details?.shop_address || '');
+      setProfileShopName(user.details?.shop_name || '');
+      setProfileOwnerName(user.details?.owner_name || '');
+      setProfileOpenTime(user.details?.opening_time || '08:00');
+      setProfileCloseTime(user.details?.closing_time || '20:00');
+      const servicesStr = user.details?.services_offered || 'Wash Only,Wash & Iron,Dry Cleaning,Ironing';
+      setSelectedServices(servicesStr.split(',').map(s => s.trim()).filter(Boolean));
+    }
+  }, [user]);
 
   const loadVendorData = async () => {
     setError('');
@@ -222,7 +237,8 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
           shop_address: profileAddress,
           opening_time: profileOpenTime,
           closing_time: profileCloseTime,
-          password: profilePassword
+          password: profilePassword,
+          services_offered: selectedServices.join(',')
         })
       });
       const data = await res.json();
@@ -648,6 +664,28 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
               <div className="form-group">
                 <label className="form-label">Closing Time</label>
                 <input type="time" className="form-control" value={profileCloseTime} onChange={(e) => setProfileCloseTime(e.target.value)} required />
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '1.5rem' }}>
+              <label className="form-label" style={{ fontWeight: 'bold' }}>Services Provided</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginTop: '0.5rem' }}>
+                {['Wash Only', 'Wash & Iron', 'Dry Cleaning', 'Ironing'].map(service => (
+                  <label key={service} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', cursor: 'pointer', background: 'rgba(255, 255, 255, 0.05)', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--card-border)' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={selectedServices.includes(service)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedServices([...selectedServices, service]);
+                        } else {
+                          setSelectedServices(selectedServices.filter(s => s !== service));
+                        }
+                      }}
+                    />
+                    <span style={{ fontSize: '0.85rem' }}>{service}</span>
+                  </label>
+                ))}
               </div>
             </div>
 

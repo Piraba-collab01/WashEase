@@ -229,7 +229,7 @@ class AdminController {
                         $row['shop_name'],
                         $row['full_name'],
                         $row['paid_at'],
-                        "Rs " . number_format($row['amount_paid'], 2)
+                        "Rs " . number_format($row['amount_paid'], 0)
                     ];
                 }
             } else if ($reportType === 'vendor') {
@@ -257,7 +257,7 @@ class AdminController {
                         $row['commission_pct'] . "%",
                         $row['total_orders'],
                         $row['completed_orders'],
-                        "Rs " . number_format($row['total_earned'] ?? 0, 2)
+                        "Rs " . number_format($row['total_earned'] ?? 0, 0)
                     ];
                 }
             } else if ($reportType === 'complaints') {
@@ -307,7 +307,7 @@ class AdminController {
                         $row['email'],
                         $row['contact_number'],
                         $row['orders_count'],
-                        "Rs " . number_format($row['total_spent'] ?? 0, 2)
+                        "Rs " . number_format($row['total_spent'] ?? 0, 0)
                     ];
                 }
             }
@@ -483,7 +483,7 @@ class AdminController {
             }
 
             // Create notification for vendor
-            $msg = "Your commission payment submission of Rs " . number_format($amount, 2) . " (Ref: {$payment['transaction_ref']}) was APPROVED. Your current outstanding balance is Rs " . number_format($newUnpaid, 2) . ".";
+            $msg = "Your commission payment submission of Rs " . number_format($amount, 0) . " (Ref: {$payment['transaction_ref']}) was APPROVED. Your current outstanding balance is Rs " . number_format($newUnpaid, 0) . ".";
             $stmtNotify = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
             $stmtNotify->execute([$vendorId, $msg]);
 
@@ -526,7 +526,7 @@ class AdminController {
             $stmt->execute([$paymentId]);
 
             // Create notification for vendor
-            $msg = "Your commission payment submission of Rs " . number_format(floatval($payment['amount']), 2) . " (Ref: {$payment['transaction_ref']}) was REJECTED. Reason: " . $reason;
+            $msg = "Your commission payment submission of Rs " . number_format(floatval($payment['amount']), 0) . " (Ref: {$payment['transaction_ref']}) was REJECTED. Reason: " . $reason;
             $stmtNotify = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
             $stmtNotify->execute([$vendorId, $msg]);
 

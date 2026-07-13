@@ -181,13 +181,13 @@ class VendorController {
                     $row['service_type'],
                     $row['clothes_weight'] . " kg",
                     $row['status'],
-                    "Rs " . number_format($amt, 2)
+                    "Rs " . number_format($amt, 0)
                 ];
             }
 
             if ($export) {
                 $headers = ["Tracking #", "Customer", "Service", "Weight", "Status", "Amount"];
-                $titleExtended = $title . " - Total Revenue: Rs " . number_format($totalRevenue, 2) . " ($orderCount Orders)";
+                $titleExtended = $title . " - Total Revenue: Rs " . number_format($totalRevenue, 0) . " ($orderCount Orders)";
                 $pdfContent = PdfService::generateReportPDF($titleExtended, $headers, $tableData);
                 
                 header('Content-Type: application/pdf');
@@ -240,7 +240,7 @@ class VendorController {
             $stmtAdmins = $this->db->query("SELECT id FROM users WHERE role = 'admin'");
             $admins = $stmtAdmins->fetchAll(PDO::FETCH_COLUMN);
             
-            $msg = "Vendor '$shopName' has submitted a commission payment of Rs " . number_format($amount, 2) . " (Ref: $transactionRef) for approval.";
+            $msg = "Vendor '$shopName' has submitted a commission payment of Rs " . number_format($amount, 0) . " (Ref: $transactionRef) for approval.";
             $stmtNotify = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
             foreach ($admins as $adminId) {
                 $stmtNotify->execute([$adminId, $msg]);

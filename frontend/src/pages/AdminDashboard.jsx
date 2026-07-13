@@ -449,7 +449,7 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
             <div className="glass-panel stat-card">
               <div className="stat-info">
                 <h4>Total Revenue</h4>
-                <p>Rs {parseFloat(stats.revenue).toFixed(2)}</p>
+                <p>Rs {parseFloat(stats.revenue).toFixed(0)}</p>
               </div>
               <div className="stat-icon" style={{ color: 'var(--success)' }}>💵</div>
             </div>
@@ -546,7 +546,7 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
                           </span>
                         </td>
                         <td style={{ color: parseFloat(v.unpaid_commission || 0) >= 1000 ? 'var(--danger)' : 'var(--text-main)', fontWeight: 'bold' }}>
-                          Rs {parseFloat(v.unpaid_commission || 0).toFixed(2)}
+                          Rs {parseFloat(v.unpaid_commission || 0).toFixed(0)}
                         </td>
                         <td>
                           <span className={`badge ${v.status === 'active' ? 'badge-active' : v.status === 'blocked' ? 'badge-danger' : 'badge-pending'}`}>
@@ -585,7 +585,7 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
                             <button 
                               className="btn btn-secondary" 
                               style={{ padding: '0.35rem 0.6rem', fontSize: '0.75rem', border: '1px solid var(--warning)', color: 'var(--warning)' }} 
-                              onClick={() => { setWarningVendor(v); setWarningMessage(`Warning: You have outstanding commission of Rs ${parseFloat(v.unpaid_commission || 0).toFixed(2)}. Please clear it to avoid account blocking.`); }}
+                              onClick={() => { setWarningVendor(v); setWarningMessage(`Warning: You have outstanding commission of Rs ${parseFloat(v.unpaid_commission || 0).toFixed(0)}. Please clear it to avoid account blocking.`); }}
                             >
                               ⚠️ Warning
                             </button>
@@ -676,7 +676,7 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
                       <tr key={p.payment_id} style={p.payment_status === 'Pending' ? { background: 'rgba(255, 159, 28, 0.03)' } : {}}>
                         <td>#{p.payment_id}</td>
                         <td><b>{p.shop_name}</b><br/><span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Owner: {p.owner_name}</span></td>
-                        <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>Rs {parseFloat(p.amount).toFixed(2)}</td>
+                        <td style={{ fontWeight: 'bold', color: 'var(--success)' }}>Rs {parseFloat(p.amount).toFixed(0)}</td>
                         <td style={{ fontFamily: 'monospace' }}>{p.transaction_ref}</td>
                         <td style={{ fontSize: '0.75rem' }}>{p.payment_date}</td>
                         <td>
@@ -749,9 +749,9 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
                       <td style={{ fontFamily: 'monospace', fontWeight: 'bold' }}>{alert.tracking_number}</td>
                       <td>{alert.shop_name}</td>
                       <td>{alert.customer_name}</td>
-                      <td>Rs {parseFloat(alert.vendor_amount).toFixed(2)}</td>
-                      <td style={{ color: 'var(--danger)', fontWeight: 'bold' }}>Rs {parseFloat(alert.customer_amount).toFixed(2)}</td>
-                      <td style={{ color: 'var(--accent)', fontWeight: 'bold' }}>Rs {parseFloat(alert.difference).toFixed(2)}</td>
+                      <td>Rs {parseFloat(alert.vendor_amount).toFixed(0)}</td>
+                      <td style={{ color: 'var(--danger)', fontWeight: 'bold' }}>Rs {parseFloat(alert.customer_amount).toFixed(0)}</td>
+                      <td style={{ color: 'var(--accent)', fontWeight: 'bold' }}>Rs {parseFloat(alert.difference).toFixed(0)}</td>
                       <td style={{ fontSize: '0.8rem' }}>{alert.created_at}</td>
                       <td>
                         <span className={`badge ${alert.status === 'Resolved' ? 'badge-active' : 'badge-danger'}`}>

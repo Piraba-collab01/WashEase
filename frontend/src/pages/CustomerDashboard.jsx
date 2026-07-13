@@ -909,20 +909,20 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
             }}>
               <p style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span>Laundry Charges ({selectedInvoice.order.clothes_weight} kg):</span>
-                <b>Rs {parseFloat(selectedInvoice.invoice.laundry_charges).toFixed(2)}</b>
+                <b>Rs {parseFloat(selectedInvoice.invoice.laundry_charges).toFixed(0)}</b>
               </p>
               <p style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span>Service Charges:</span>
-                <b>Rs {parseFloat(selectedInvoice.invoice.service_charges).toFixed(2)}</b>
+                <b>Rs {parseFloat(selectedInvoice.invoice.service_charges).toFixed(0)}</b>
               </p>
               <p style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span>Taxes (5%):</span>
-                <b>Rs {parseFloat(selectedInvoice.invoice.taxes).toFixed(2)}</b>
+                <b>Rs {parseFloat(selectedInvoice.invoice.taxes).toFixed(0)}</b>
               </p>
               <hr style={{ margin: '0.5rem 0', borderColor: 'var(--card-border)' }} />
               <h4 style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--primary-light)' }}>
                 <span>Total Due Amount:</span>
-                <b>Rs {parseFloat(selectedInvoice.invoice.total_amount).toFixed(2)}</b>
+                <b>Rs {parseFloat(selectedInvoice.invoice.total_amount).toFixed(0)}</b>
               </h4>
             </div>
 

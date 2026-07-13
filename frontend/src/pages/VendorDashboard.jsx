@@ -284,7 +284,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
             }}>
               <div style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>🚫 Account Blocked!</div>
               <div style={{ fontWeight: 'normal', fontSize: '0.95rem' }}>
-                Your laundry shop account has been <b>BLOCKED</b> because your unpaid commission has reached <b>Rs {parseFloat(rewardStats.unpaid_commission).toFixed(2)}</b> (Limit: Rs 1000.00). 
+                Your laundry shop account has been <b>BLOCKED</b> because your unpaid commission has reached <b>Rs {parseFloat(rewardStats.unpaid_commission).toFixed(0)}</b> (Limit: Rs 1000). 
                 You are temporarily disabled from managing new order statuses or generating new bills. Please contact administration and clear your dues to reactivate your account.
               </div>
             </div>
@@ -308,7 +308,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
             <div className="glass-panel stat-card">
               <div className="stat-info">
                 <h4>Monthly Revenue</h4>
-                <p>Rs {parseFloat(stats.revenue).toFixed(2)}</p>
+                <p>Rs {parseFloat(stats.revenue).toFixed(0)}</p>
               </div>
               <div className="stat-icon" style={{ color: 'var(--success)', background: 'rgba(46, 196, 182, 0.1)' }}>💵</div>
             </div>
@@ -324,7 +324,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
                 <h4>Unpaid Commission</h4>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
                   <p style={{ color: parseFloat(rewardStats.unpaid_commission || 0) >= 1000 ? 'var(--danger)' : 'var(--text-main)', fontWeight: 800, margin: 0 }}>
-                    Rs {parseFloat(rewardStats.unpaid_commission || 0).toFixed(2)}
+                    Rs {parseFloat(rewardStats.unpaid_commission || 0).toFixed(0)}
                   </p>
                   {parseFloat(rewardStats.unpaid_commission || 0) > 0 && (
                     <button 
@@ -567,7 +567,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
                 <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>TOTAL REVENUE</span>
-                  <h3>${parseFloat(reportData.summary.total_revenue).toFixed(2)}</h3>
+                  <h3>Rs {parseFloat(reportData.summary.total_revenue).toFixed(0)}</h3>
                 </div>
                 <div className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>TOTAL ORDERS</span>
@@ -598,7 +598,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
                         <td>{o.service_type}</td>
                         <td>{o.clothes_weight} kg</td>
                         <td>{o.status}</td>
-                        <td>{o.total_amount ? `Rs ${parseFloat(o.total_amount).toFixed(2)}` : 'N/A'}</td>
+                        <td>{o.total_amount ? `Rs ${parseFloat(o.total_amount).toFixed(0)}` : 'N/A'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -731,7 +731,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
               <hr style={{ margin: '0.5rem 0', borderColor: 'var(--card-border)' }} />
               <h4 style={{ display: 'flex', justify: 'space-between', color: 'var(--success)' }}>
                 <span>Base Laundry Charges:</span>
-                <b>Rs {((parseFloat(actualWeight) || 0) * 100).toFixed(2)}</b>
+                <b>Rs {((parseFloat(actualWeight) || 0) * 100).toFixed(0)}</b>
               </h4>
             </div>
 
@@ -807,7 +807,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
               <p><b>Account Number:</b> 1230-5847-9201-4827</p>
               <p><b>Branch:</b> Colombo Head Office</p>
               <p style={{ marginTop: '0.5rem', color: 'var(--warning)', fontWeight: 'bold' }}>
-                Please transfer exactly Rs {parseFloat(rewardStats.unpaid_commission || 0).toFixed(2)}
+                Please transfer exactly Rs {parseFloat(rewardStats.unpaid_commission || 0).toFixed(0)}
               </p>
             </div>
 
@@ -820,7 +820,7 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
                   className="form-control" 
                   value={paymentAmount} 
                   onChange={(e) => setPaymentAmount(e.target.value)} 
-                  placeholder={`e.g. ${parseFloat(rewardStats.unpaid_commission || 0).toFixed(2)}`}
+                  placeholder={`e.g. ${parseFloat(rewardStats.unpaid_commission || 0).toFixed(0)}`}
                   required
                 />
               </div>

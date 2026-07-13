@@ -326,7 +326,7 @@ class OrderController {
 
             // Send notification to customer
             $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
-            $custMsg = "Invoice $invoiceNumber generated for Order {$order['tracking_number']}. Total Amount: $" . number_format($totalAmount, 2) . ". Please confirm your payment.";
+            $custMsg = "Invoice $invoiceNumber generated for Order {$order['tracking_number']}. Total Amount: Rs " . number_format($totalAmount, 0) . ". Please confirm your payment.";
             $stmt->execute([$order['customer_id'], $custMsg]);
 
             $this->db->commit();
@@ -387,7 +387,7 @@ class OrderController {
                 $stmtAdmin->execute();
                 $admins = $stmtAdmin->fetchAll();
                 
-                $alertMsg = "FRAUD ALERT: Payment amount mismatch detected on Order #{$order['tracking_number']}. Invoice: $" . number_format($invoiceAmount, 2) . " | Paid: $" . number_format($actualPaidAmount, 2);
+                $alertMsg = "FRAUD ALERT: Payment amount mismatch detected on Order #{$order['tracking_number']}. Invoice: Rs " . number_format($invoiceAmount, 0) . " | Paid: Rs " . number_format($actualPaidAmount, 0);
                 foreach ($admins as $adm) {
                     $stmtNotif = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
                     $stmtNotif->execute([$adm['id'], $alertMsg]);
@@ -429,7 +429,7 @@ class OrderController {
 
                 // Notify Vendor about payment
                 $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
-                $vendorMsg = "Payment of Rs " . number_format($actualPaidAmount, 2) . " has been confirmed for Order #{$order['tracking_number']}. Commission of Rs " . number_format($commissionOwed, 2) . " ($commPct%) has been charged.";
+                $vendorMsg = "Payment of Rs " . number_format($actualPaidAmount, 0) . " has been confirmed for Order #{$order['tracking_number']}. Commission of Rs " . number_format($commissionOwed, 0) . " ($commPct%) has been charged.";
                 $stmt->execute([$order['vendor_id'], $vendorMsg]);
 
                 // Check if commission limit reached (Rs 1000)
@@ -440,7 +440,7 @@ class OrderController {
 
                     // Notify vendor about account block
                     $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
-                    $blockMsg = "CRITICAL: Your account has been BLOCKED because your unpaid commission has reached Rs " . number_format($unpaidComm, 2) . " (limit: Rs 1000.00). Please pay your dues to reactivate your account.";
+                    $blockMsg = "CRITICAL: Your account has been BLOCKED because your unpaid commission has reached Rs " . number_format($unpaidComm, 0) . " (limit: Rs 1000). Please pay your dues to reactivate your account.";
                     $stmt->execute([$order['vendor_id'], $blockMsg]);
                 }
 

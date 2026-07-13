@@ -40,15 +40,15 @@ class PdfService {
                     <tr>
                         <td style='border: 1px solid #ddd; padding: 8px;'>{$order['service_type']}</td>
                         <td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>{$order['clothes_weight']}</td>
-                        <td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>$" . number_format($invoice['laundry_charges'] / max(1, $order['clothes_weight']), 2) . " / kg</td>
+                        <td style='border: 1px solid #ddd; padding: 8px; text-align: right;'>Rs " . number_format($invoice['laundry_charges'] / max(1, $order['clothes_weight']), 0) . " / kg</td>
                     </tr>
                 </tbody>
             </table>
             <div style='margin-top: 20px; text-align: right;'>
-                <p><b>Laundry Charges:</b> $" . number_format($invoice['laundry_charges'], 2) . "</p>
-                <p><b>Service Charges:</b> $" . number_format($invoice['service_charges'], 2) . "</p>
-                <p><b>Taxes (5%):</b> $" . number_format($invoice['taxes'], 2) . "</p>
-                <h3 style='color: #4A154B;'><b>Total Amount:</b> $" . number_format($invoice['total_amount'], 2) . "</h3>
+                <p><b>Laundry Charges:</b> Rs " . number_format($invoice['laundry_charges'], 0) . "</p>
+                <p><b>Service Charges:</b> Rs " . number_format($invoice['service_charges'], 0) . "</p>
+                <p><b>Taxes (5%):</b> Rs " . number_format($invoice['taxes'], 0) . "</p>
+                <h3 style='color: #4A154B;'><b>Total Amount:</b> Rs " . number_format($invoice['total_amount'], 0) . "</h3>
             </div>
             <hr style='border: 1px solid #ddd;'/>
             <p style='text-align: center; font-size: 12px; color: #777;'>Thank you for choosing WashEase!</p>

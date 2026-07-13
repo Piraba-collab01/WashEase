@@ -65,9 +65,14 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchNotifications();
     // Poll notifications every 30 seconds
     const interval = setInterval(() => {
-      if (user) fetchNotifications();
+      fetchNotifications();
     }, 30000);
     return () => clearInterval(interval);
   }, [user]);

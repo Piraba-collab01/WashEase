@@ -178,7 +178,24 @@ class AuthController {
             if ($user['role'] === 'vendor') {
                 return ["success" => false, "message" => "Your vendor account is pending admin approval."];
             }
-            return ["success" => false, "message" => "Your account is pending verification. Please verify your OTP."];
+            
+            // Auto generate fresh OTP for customer
+            $email = $user['email'];
+            $otp = sprintf("%06d", mt_rand(100000, 999999));
+            $expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+            
+            $stmt = $this->db->prepare("INSERT INTO otp_verifications (email, otp, otp_expiry) VALUES (?, ?, ?)");
+            $stmt->execute([$email, $otp, $expiry]);
+            
+            // Send OTP
+            MailService::sendOTP($email, $otp);
+            
+            return [
+                "success" => false,
+                "needs_verification" => true,
+                "email" => $email,
+                "message" => "Your account is pending verification. A new OTP has been logged to your verification file. Please verify below."
+            ];
         }
 
         if ($user['status'] === 'rejected') {

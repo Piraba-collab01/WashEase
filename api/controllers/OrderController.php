@@ -298,10 +298,10 @@ class OrderController {
             $setting = $stmt->fetch();
             $ratePerKg = floatval($setting['setting_value'] ?? 10.00);
 
-            // Compute charges
-            $laundryCharges = $order['clothes_weight'] * $ratePerKg;
-            $subtotal = $laundryCharges + $serviceCharge + $additionalCharge;
-            $taxes = $subtotal * 0.05; // 5% tax
+            // Compute charges (rounded to nearest whole rupee)
+            $laundryCharges = round($order['clothes_weight'] * $ratePerKg);
+            $subtotal = $laundryCharges + round($serviceCharge) + round($additionalCharge);
+            $taxes = round($subtotal * 0.05); // 5% tax
             $totalAmount = $subtotal + $taxes;
 
             // Generate invoice number
@@ -358,8 +358,8 @@ class OrderController {
 
             $invoiceAmount = floatval($order['total_amount']);
 
-            // Mismatch Check
-            if (abs($actualPaidAmount - $invoiceAmount) > 0.01) {
+            // Mismatch Check (round both values to whole numbers to support legacy decimal records and rounded display values)
+            if (round($actualPaidAmount) != round($invoiceAmount)) {
                 // Fraud Alert!
                 $stmt = $this->db->prepare("
                     INSERT INTO fraud_alerts (order_id, vendor_id, customer_id, vendor_amount, customer_amount, difference, status)

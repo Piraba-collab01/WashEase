@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import laundryBg from '../assets/laundry-bg.png';
-import laundryCartoon from '../assets/laundry-cartoon.jpeg';
 
 export const Landing = ({ setCurrentTab, setRegisterRole }) => {
   const { user } = useAuth();
@@ -42,8 +41,8 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
       {/* Hero Section */}
       <header className="landing-hero" style={{ backgroundImage: `url(${laundryBg})` }}>
         <div className="hero-overlay"></div>
-        <div className="hero-content-wrapper main-content" style={{ display: 'flex', gap: '3rem', alignItems: 'center', justifyContent: 'space-between', zIndex: 2, position: 'relative', width: '100%', flexWrap: 'wrap' }}>
-          <div className="hero-card glass-panel" style={{ flex: '1 1 500px', maxWidth: '600px' }}>
+        <div className="hero-content-wrapper main-content">
+          <div className="hero-card glass-panel">
             <span className="hero-badge">🧼 Smart Laundry Platform</span>
             <h1 className="hero-title">
               Fresh Clothes,<br />
@@ -78,12 +77,6 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
                 <span className="stat-num">99.8%</span>
                 <span className="stat-label">On-time Delivery</span>
               </div>
-            </div>
-          </div>
-
-          <div style={{ flex: '1 1 350px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div className="hero-cartoon-card">
-              <img src={laundryCartoon} alt="Cute WashEase Washer Mascot" className="hero-cartoon-img" />
             </div>
           </div>
         </div>

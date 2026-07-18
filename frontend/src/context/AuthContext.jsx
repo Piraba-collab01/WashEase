@@ -3,7 +3,16 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
-export const API_URL = 'http://localhost:8000/index.php';
+const DEFAULT_API_URL = '/api';
+export const API_URL = import.meta.env.VITE_API_URL || DEFAULT_API_URL;
+
+const normalizeApiUrl = (url) => {
+  if (!url) return API_URL;
+  if (url.startsWith('http://localhost:8000/index.php')) {
+    return url.replace('http://localhost:8000/index.php', API_URL);
+  }
+  return url;
+};
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -11,12 +20,13 @@ export const AuthProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
 
   const fetchWithAuth = async (url, options = {}) => {
+    const normalizedUrl = normalizeApiUrl(url);
     options.credentials = 'include';
     options.headers = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers || {}),
     };
-    return fetch(url, options);
+    return fetch(normalizedUrl, options);
   };
 
   const checkAuth = async () => {

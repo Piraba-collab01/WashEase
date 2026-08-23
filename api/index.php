@@ -2,8 +2,16 @@
 // washease-api/index.php
 
 // Session settings for cross-origin credentials
-ini_set('session.cookie_samesite', 'None');
-ini_set('session.cookie_secure', 'True');
+$isSecure = (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] === 'on' || $_SERVER['HTTPS'] === 1)) || 
+            (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+if ($isSecure) {
+    ini_set('session.cookie_samesite', 'None');
+    ini_set('session.cookie_secure', 'True');
+} else {
+    ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.cookie_secure', 'False');
+}
 session_start();
 
 // CORS Configuration

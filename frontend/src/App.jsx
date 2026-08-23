@@ -1,5 +1,6 @@
 // washease-frontend/src/App.jsx
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Login } from './pages/Login';
@@ -10,27 +11,63 @@ import { VendorDashboard } from './pages/VendorDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { Landing } from './pages/Landing';
 
+const ProtectedRoute = ({ allowedRoles, children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    if (user.role === 'customer') return <Navigate to="/dashboard" replace />;
+    if (user.role === 'vendor') return <Navigate to="/vendor-dashboard" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+  }
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) {
+    if (user.role === 'customer') return <Navigate to="/dashboard" replace />;
+    if (user.role === 'vendor') return <Navigate to="/vendor-dashboard" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+  }
+  return children;
+};
+
+const FallbackRedirect = () => {
+  const { user } = useAuth();
+  if (user) {
+    if (user.role === 'customer') return <Navigate to="/dashboard" replace />;
+    if (user.role === 'vendor') return <Navigate to="/vendor-dashboard" replace />;
+    if (user.role === 'admin') return <Navigate to="/admin-dashboard" replace />;
+  }
+  return <Navigate to="/" replace />;
+};
+
 const AppContent = () => {
   const { user, loading } = useAuth();
-  const [currentTab, setCurrentTab] = useState('landing');
+  const location = useLocation();
+  const navigate = useNavigate();
   const [registerRole, setRegisterRole] = useState('customer');
 
-  // Sync tab with authentication state
-  useEffect(() => {
-    if (!loading) {
-      if (user) {
-        if (user.role === 'customer') {
-          setCurrentTab(prev => ['dashboard', 'search', 'book', 'orders', 'complaints', 'profile'].includes(prev) ? prev : 'dashboard');
-        } else if (user.role === 'vendor') {
-          setCurrentTab(prev => ['vendor-dashboard', 'vendor-orders', 'vendor-rewards', 'vendor-reports', 'vendor-profile'].includes(prev) ? prev : 'vendor-dashboard');
-        } else if (user.role === 'admin') {
-          setCurrentTab(prev => ['admin-dashboard', 'admin-users', 'admin-commissions', 'admin-fraud', 'admin-complaints', 'admin-reports'].includes(prev) ? prev : 'admin-dashboard');
-        }
-      } else {
-        setCurrentTab(prev => ['landing', 'login', 'register', 'forgot-password'].includes(prev) ? prev : 'landing');
-      }
+  // Compute the current active tab based on the URL path
+  const currentPath = location.pathname.substring(1);
+  const currentTab = currentPath || 'landing';
+
+  // Wrapper handlers to translate legacy state changes into navigations
+  const handleSetCurrentTab = (tab) => {
+    if (tab === 'landing') {
+      navigate('/');
+    } else {
+      navigate(`/${tab}`);
     }
-  }, [user, loading]);
+  };
+
+  const handleSetSubTab = (subTab) => {
+    navigate(`/${subTab}`);
+  };
 
   if (loading) {
     return (
@@ -63,51 +100,137 @@ const AppContent = () => {
     );
   }
 
-  const renderContent = () => {
-    // Guest Routing
-    if (!user) {
-      switch (currentTab) {
-        case 'register':
-          return <Register setCurrentTab={setCurrentTab} initialRole={registerRole} />;
-        case 'forgot-password':
-          return <ForgotPassword setCurrentTab={setCurrentTab} />;
-        case 'login':
-          return <Login setCurrentTab={setCurrentTab} />;
-        case 'landing':
-        default:
-          return <Landing setCurrentTab={setCurrentTab} setRegisterRole={setRegisterRole} />;
-      }
-    }
-
-    // Customer Routing
-    if (user.role === 'customer') {
-      return <CustomerDashboard subTab={currentTab} setSubTab={setCurrentTab} />;
-    }
-
-    // Vendor Routing
-    if (user.role === 'vendor') {
-      return <VendorDashboard subTab={currentTab} setSubTab={setCurrentTab} />;
-    }
-
-    // Admin Routing
-    if (user.role === 'admin') {
-      return <AdminDashboard subTab={currentTab} setSubTab={setCurrentTab} />;
-    }
-  };
-
   return (
     <div className="app-container">
-      <Navbar currentTab={currentTab} setCurrentTab={setCurrentTab} />
-      {renderContent()}
+      <Navbar currentTab={currentTab} setCurrentTab={handleSetCurrentTab} />
+      <Routes>
+        {/* Guest Routes */}
+        <Route path="/" element={
+          <PublicRoute>
+            <Landing setCurrentTab={handleSetCurrentTab} setRegisterRole={setRegisterRole} />
+          </PublicRoute>
+        } />
+        <Route path="/login" element={
+          <PublicRoute>
+            <Login setCurrentTab={handleSetCurrentTab} />
+          </PublicRoute>
+        } />
+        <Route path="/register" element={
+          <PublicRoute>
+            <Register setCurrentTab={handleSetCurrentTab} initialRole={registerRole} />
+          </PublicRoute>
+        } />
+        <Route path="/forgot-password" element={
+          <PublicRoute>
+            <ForgotPassword setCurrentTab={handleSetCurrentTab} />
+          </PublicRoute>
+        } />
+
+        {/* Customer Protected Routes */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute allowedRoles={['customer']}>
+            <CustomerDashboard subTab="dashboard" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/search" element={
+          <ProtectedRoute allowedRoles={['customer']}>
+            <CustomerDashboard subTab="search" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/book" element={
+          <ProtectedRoute allowedRoles={['customer']}>
+            <CustomerDashboard subTab="book" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/orders" element={
+          <ProtectedRoute allowedRoles={['customer']}>
+            <CustomerDashboard subTab="orders" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/complaints" element={
+          <ProtectedRoute allowedRoles={['customer']}>
+            <CustomerDashboard subTab="complaints" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/profile" element={
+          <ProtectedRoute allowedRoles={['customer']}>
+            <CustomerDashboard subTab="profile" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+
+        {/* Vendor Protected Routes */}
+        <Route path="/vendor-dashboard" element={
+          <ProtectedRoute allowedRoles={['vendor']}>
+            <VendorDashboard subTab="vendor-dashboard" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/vendor-orders" element={
+          <ProtectedRoute allowedRoles={['vendor']}>
+            <VendorDashboard subTab="vendor-orders" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/vendor-rewards" element={
+          <ProtectedRoute allowedRoles={['vendor']}>
+            <VendorDashboard subTab="vendor-rewards" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/vendor-reports" element={
+          <ProtectedRoute allowedRoles={['vendor']}>
+            <VendorDashboard subTab="vendor-reports" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/vendor-profile" element={
+          <ProtectedRoute allowedRoles={['vendor']}>
+            <VendorDashboard subTab="vendor-profile" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+
+        {/* Admin Protected Routes */}
+        <Route path="/admin-dashboard" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard subTab="admin-dashboard" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin-users" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard subTab="admin-users" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin-commissions" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard subTab="admin-commissions" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin-fraud" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard subTab="admin-fraud" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin-complaints" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard subTab="admin-complaints" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin-reports" element={
+          <ProtectedRoute allowedRoles={['admin']}>
+            <AdminDashboard subTab="admin-reports" setSubTab={handleSetSubTab} />
+          </ProtectedRoute>
+        } />
+
+        {/* Catch-all Fallback */}
+        <Route path="*" element={<FallbackRedirect />} />
+      </Routes>
     </div>
   );
 };
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

@@ -103,9 +103,9 @@ export const Navbar = ({ currentTab, setCurrentTab }) => {
         {/* Notification Bell */}
         {user && (
           <div style={{ position: 'relative' }}>
-            <button 
-              className="theme-switch" 
-              onClick={handleNotificationClick} 
+            <button
+              className="theme-switch"
+              onClick={handleNotificationClick}
               title="Notifications"
               style={{ position: 'relative', cursor: 'pointer' }}
             >
@@ -156,11 +156,11 @@ export const Navbar = ({ currentTab, setCurrentTab }) => {
                   <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textAlign: 'center', padding: '1rem' }}>No notifications</p>
                 ) : (
                   notifications.map(n => (
-                    <div 
-                      key={n.id} 
-                      style={{ 
-                        fontSize: '0.85rem', 
-                        padding: '0.5rem', 
+                    <div
+                      key={n.id}
+                      style={{
+                        fontSize: '0.85rem',
+                        padding: '0.5rem',
                         borderRadius: '6px',
                         background: n.is_read ? 'transparent' : 'rgba(138, 43, 226, 0.08)',
                         borderLeft: n.is_read ? 'none' : '3px solid var(--primary)'

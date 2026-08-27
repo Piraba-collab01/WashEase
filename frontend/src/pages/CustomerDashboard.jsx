@@ -1,6 +1,30 @@
 // washease-frontend/src/pages/CustomerDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+const getTimeSlots = (start, end) => {
+  const slots = [];
+  const startTime = start ? parseInt(start.split(':')[0]) : 8;
+  const endTime = end ? parseInt(end.split(':')[0]) : 20;
+  
+  for (let h = startTime; h <= endTime; h++) {
+    const hourStr = String(h).padStart(2, '0');
+    const displayHour = h % 12 === 0 ? 12 : h % 12;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    
+    slots.push({
+      value: `${hourStr}:00`,
+      label: `${displayHour}:00 ${ampm}`
+    });
+    
+    if (h < endTime) {
+      slots.push({
+        value: `${hourStr}:30`,
+        label: `${displayHour}:30 ${ampm}`
+      });
+    }
+  }
+  return slots;
+};
 
 export const CustomerDashboard = ({ subTab, setSubTab }) => {
   const { user, fetchWithAuth, checkAuth } = useAuth();
@@ -123,6 +147,18 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
 
     if (!selectedVendor) {
       setError('Please select a laundry shop first.');
+      setLoading(false);
+      return;
+    }
+
+    // Validate pickup time against vendor hours
+    const openTime = selectedVendor.opening_time || '08:00:00';
+    const closeTime = selectedVendor.closing_time || '20:00:00';
+    const padTime = pickupTime.split(':').length === 2 ? `${pickupTime}:00` : pickupTime;
+    
+    if (padTime < openTime || padTime > closeTime) {
+      const formatTimeStr = (t) => t.substring(0, 5);
+      setError(`Pickup time must be within the shop's official business hours (${formatTimeStr(openTime)} - ${formatTimeStr(closeTime)}).`);
       setLoading(false);
       return;
     }
@@ -435,18 +471,35 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
                   className="form-control" 
                   value={pickupDate} 
                   onChange={(e) => setPickupDate(e.target.value)} 
+                  min={(() => {
+                    const d = new Date();
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const day = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${day}`;
+                  })()}
                   required
                 />
               </div>
               <div className="form-group">
                 <label className="form-label">Pickup Time</label>
-                <input 
-                  type="time" 
+                <select 
                   className="form-control" 
                   value={pickupTime} 
                   onChange={(e) => setPickupTime(e.target.value)} 
                   required
-                />
+                >
+                  <option value="">Select Pickup Time</option>
+                  {getTimeSlots(
+                    selectedVendor?.opening_time, 
+                    selectedVendor?.closing_time
+                  ).map((slot, idx) => (
+                    <option key={idx} value={slot.value}>{slot.label}</option>
+                  ))}
+                </select>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
+                  <i>Shop Hours: {selectedVendor ? `${selectedVendor.opening_time.substring(0, 5)} - ${selectedVendor.closing_time.substring(0, 5)}` : '08:00 - 20:00'}</i>
+                </p>
               </div>
             </div>
 

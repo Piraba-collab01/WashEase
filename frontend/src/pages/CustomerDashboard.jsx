@@ -1,37 +1,13 @@
 // washease-frontend/src/pages/CustomerDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-const getTimeSlots = (start, end) => {
-  const slots = [];
-  const startTime = start ? parseInt(start.split(':')[0]) : 8;
-  const endTime = end ? parseInt(end.split(':')[0]) : 20;
-  
-  for (let h = startTime; h <= endTime; h++) {
-    const hourStr = String(h).padStart(2, '0');
-    const displayHour = h % 12 === 0 ? 12 : h % 12;
-    const ampm = h >= 12 ? 'PM' : 'AM';
-    
-    slots.push({
-      value: `${hourStr}:00`,
-      label: `${displayHour}:00 ${ampm}`
-    });
-    
-    if (h < endTime) {
-      slots.push({
-        value: `${hourStr}:30`,
-        label: `${displayHour}:30 ${ampm}`
-      });
-    }
-  }
-  return slots;
-};
 
 export const CustomerDashboard = ({ subTab, setSubTab }) => {
   const { user, fetchWithAuth, checkAuth } = useAuth();
   const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0, complaints: 0 });
   const [nearbyShops, setNearbyShops] = useState([]);
   const [searchDistrict, setSearchDistrict] = useState('');
-  
+
   // Geolocation coords for customer
   const [coords, setCoords] = useState({ lat: 12.9716, lng: 77.5946 });
 
@@ -155,7 +131,7 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
     const openTime = selectedVendor.opening_time || '08:00:00';
     const closeTime = selectedVendor.closing_time || '20:00:00';
     const padTime = pickupTime.split(':').length === 2 ? `${pickupTime}:00` : pickupTime;
-    
+
     if (padTime < openTime || padTime > closeTime) {
       const formatTimeStr = (t) => t.substring(0, 5);
       setError(`Pickup time must be within the shop's official business hours (${formatTimeStr(openTime)} - ${formatTimeStr(closeTime)}).`);
@@ -362,11 +338,11 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem' }}>
               <h3>Nearby Laundry Service Providers</h3>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <input 
-                  type="text" 
-                  className="form-control" 
-                  placeholder="Filter by district/region" 
-                  style={{ width: '200px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }} 
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Filter by district/region"
+                  style={{ width: '200px', padding: '0.5rem 0.75rem', fontSize: '0.85rem' }}
                   value={searchDistrict}
                   onChange={(e) => setSearchDistrict(e.target.value)}
                 />
@@ -394,7 +370,7 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
                     {nearbyShops.map(shop => (
                       <tr key={shop.vendor_id}>
                         <td>
-                          <b>{shop.shop_name}</b><br/>
+                          <b>{shop.shop_name}</b><br />
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Owner: {shop.owner_name}</span>
                         </td>
                         <td>{shop.district}</td>
@@ -454,11 +430,11 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
           <form onSubmit={handlePlaceBooking}>
             <div className="form-group">
               <label className="form-label">Pickup Address</label>
-              <textarea 
-                className="form-control" 
-                rows="3" 
-                value={pickupAddress} 
-                onChange={(e) => setPickupAddress(e.target.value)} 
+              <textarea
+                className="form-control"
+                rows="3"
+                value={pickupAddress}
+                onChange={(e) => setPickupAddress(e.target.value)}
                 required
               />
             </div>
@@ -466,11 +442,11 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="form-group">
                 <label className="form-label">Pickup Date</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  value={pickupDate} 
-                  onChange={(e) => setPickupDate(e.target.value)} 
+                <input
+                  type="date"
+                  className="form-control"
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
                   min={(() => {
                     const d = new Date();
                     const y = d.getFullYear();
@@ -483,20 +459,15 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
               </div>
               <div className="form-group">
                 <label className="form-label">Pickup Time</label>
-                <select 
-                  className="form-control" 
-                  value={pickupTime} 
-                  onChange={(e) => setPickupTime(e.target.value)} 
+                <input
+                  type="time"
+                  className="form-control"
+                  value={pickupTime}
+                  onChange={(e) => setPickupTime(e.target.value)}
+                  min={selectedVendor?.opening_time ? selectedVendor.opening_time.substring(0, 5) : '08:00'}
+                  max={selectedVendor?.closing_time ? selectedVendor.closing_time.substring(0, 5) : '20:00'}
                   required
-                >
-                  <option value="">Select Pickup Time</option>
-                  {getTimeSlots(
-                    selectedVendor?.opening_time, 
-                    selectedVendor?.closing_time
-                  ).map((slot, idx) => (
-                    <option key={idx} value={slot.value}>{slot.label}</option>
-                  ))}
-                </select>
+                />
                 <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
                   <i>Shop Hours: {selectedVendor ? `${selectedVendor.opening_time.substring(0, 5)} - ${selectedVendor.closing_time.substring(0, 5)}` : '08:00 - 20:00'}</i>
                 </p>
@@ -506,14 +477,14 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div className="form-group">
                 <label className="form-label">Approx Clothes Weight (kg)</label>
-                <input 
-                  type="number" 
-                  step="0.1" 
-                  min="0.5" 
-                  className="form-control" 
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0.5"
+                  className="form-control"
                   placeholder="e.g. 3.5"
-                  value={clothesWeight} 
-                  onChange={(e) => setClothesWeight(e.target.value)} 
+                  value={clothesWeight}
+                  onChange={(e) => setClothesWeight(e.target.value)}
                   required
                 />
               </div>
@@ -538,18 +509,18 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
 
             <div className="form-group" style={{ marginBottom: '2rem' }}>
               <label className="form-label">Special Instructions (Optional)</label>
-              <textarea 
-                className="form-control" 
-                rows="2" 
-                placeholder="Fragile fabrics, color separation warnings, etc." 
+              <textarea
+                className="form-control"
+                rows="2"
+                placeholder="Fragile fabrics, color separation warnings, etc."
                 value={specialInstructions}
                 onChange={(e) => setSpecialInstructions(e.target.value)}
               />
             </div>
 
-            <button 
-              type="submit" 
-              className="btn btn-primary" 
+            <button
+              type="submit"
+              className="btn btn-primary"
               style={{ width: '100%', padding: '0.80rem' }}
               disabled={loading || !selectedVendor}
             >
@@ -565,10 +536,10 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
             <h2>Search Nearby Laundry Shops</h2>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <input 
-                type="text" 
-                className="form-control" 
-                placeholder="District or Area Name" 
+              <input
+                type="text"
+                className="form-control"
+                placeholder="District or Area Name"
                 value={searchDistrict}
                 onChange={(e) => setSearchDistrict(e.target.value)}
                 style={{ width: '250px' }}
@@ -591,7 +562,7 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
                     <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '0.75rem' }}>Owner: {shop.owner_name}</p>
                     <p style={{ fontSize: '0.85rem', marginBottom: '0.5rem' }}>📍 {shop.shop_address} ({shop.district})</p>
                     <p style={{ fontSize: '0.85rem', color: 'var(--primary-light)', fontWeight: 600, marginBottom: '1rem' }}>Distance: {shop.distance} km away</p>
-                    
+
                     <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
                       {shop.services.map((s, idx) => (
                         <span key={idx} className="badge badge-info" style={{ fontSize: '0.65rem' }}>{s}</span>
@@ -600,15 +571,15 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
                   </div>
 
                   <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
-                    <button 
-                      className="btn btn-secondary" 
+                    <button
+                      className="btn btn-secondary"
                       style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}
                       onClick={() => alert(`Shop Hours: ${shop.opening_time} to ${shop.closing_time}\nContact: ${shop.contact_number}\nEmail: ${shop.email}`)}
                     >
                       View Details
                     </button>
-                    <button 
-                      className="btn btn-primary" 
+                    <button
+                      className="btn btn-primary"
                       style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem' }}
                       onClick={() => handleBookService(shop)}
                     >
@@ -664,17 +635,17 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
                       </td>
                       <td>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button 
-                            className="btn btn-secondary" 
+                          <button
+                            className="btn btn-secondary"
                             style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
                             onClick={() => handleOpenTimeline(order.order_id)}
                           >
                             Track Timeline
                           </button>
-                          
+
                           {order.payment_status === 'Pending Confirmation' && (
-                            <button 
-                              className="btn btn-primary" 
+                            <button
+                              className="btn btn-primary"
                               style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
                               onClick={async () => {
                                 // Fetch order invoice details
@@ -688,10 +659,10 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
                               Pay Invoice
                             </button>
                           )}
-                          
+
                           {order.payment_status === 'Paid' && (
-                            <button 
-                              className="btn btn-secondary" 
+                            <button
+                              className="btn btn-secondary"
                               style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
                               onClick={async () => {
                                 const res = await fetchWithAuth(`http://localhost:8000/index.php?action=order-details&order_id=${order.order_id}`);
@@ -723,7 +694,7 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
           {/* File a complaint form */}
           <div className="glass-panel" style={{ padding: '2rem' }}>
             <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary)' }}>Submit Complaint</h3>
-            
+
             {error && <div style={{ background: 'rgba(231, 29, 54, 0.12)', color: 'var(--danger)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1.25rem' }}>⚠️ {error}</div>}
             {success && <div style={{ background: 'rgba(46, 196, 182, 0.12)', color: 'var(--success)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1.25rem' }}>✅ {success}</div>}
 
@@ -751,10 +722,10 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
 
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label">Detailed Description</label>
-                <textarea 
-                  className="form-control" 
-                  rows="4" 
-                  placeholder="Describe your issue with clothes, billing, delivery schedules, etc." 
+                <textarea
+                  className="form-control"
+                  rows="4"
+                  placeholder="Describe your issue with clothes, billing, delivery schedules, etc."
                   value={complaintDesc}
                   onChange={(e) => setComplaintDesc(e.target.value)}
                   required
@@ -837,45 +808,45 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
 
             <div className="form-group">
               <label className="form-label">Email Address</label>
-              <input 
-                type="email" 
-                className="form-control" 
-                value={profileEmail} 
-                onChange={(e) => setProfileEmail(e.target.value)} 
+              <input
+                type="email"
+                className="form-control"
+                value={profileEmail}
+                onChange={(e) => setProfileEmail(e.target.value)}
                 required
               />
             </div>
 
             <div className="form-group">
               <label className="form-label">Phone Number</label>
-              <input 
-                type="text" 
-                className="form-control" 
-                value={profilePhone} 
-                onChange={(e) => setProfilePhone(e.target.value)} 
+              <input
+                type="text"
+                className="form-control"
+                value={profilePhone}
+                onChange={(e) => setProfilePhone(e.target.value)}
                 required
               />
             </div>
 
             <div className="form-group">
               <label className="form-label">Delivery Address</label>
-              <textarea 
-                className="form-control" 
-                rows="3" 
-                value={profileAddress} 
-                onChange={(e) => setProfileAddress(e.target.value)} 
+              <textarea
+                className="form-control"
+                rows="3"
+                value={profileAddress}
+                onChange={(e) => setProfileAddress(e.target.value)}
                 required
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: '2rem' }}>
               <label className="form-label">Update Password (Leave blank to keep current)</label>
-              <input 
-                type="password" 
-                className="form-control" 
+              <input
+                type="password"
+                className="form-control"
                 placeholder="Enter new password"
-                value={profilePassword} 
-                onChange={(e) => setProfilePassword(e.target.value)} 
+                value={profilePassword}
+                onChange={(e) => setProfilePassword(e.target.value)}
               />
             </div>
 
@@ -937,19 +908,19 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
             </p>
 
             {selectedInvoice.order.estimated_weight && parseFloat(selectedInvoice.order.estimated_weight) !== parseFloat(selectedInvoice.order.clothes_weight) && (
-               <div style={{
-                 background: 'rgba(255, 159, 28, 0.1)',
-                 border: '1px solid var(--warning)',
-                 color: 'var(--warning)',
-                 padding: '0.85rem',
-                 borderRadius: '8px',
-                 fontSize: '0.85rem',
-                 marginBottom: '1.25rem',
-                 lineHeight: '1.4',
-                 boxShadow: 'inset 0 0 10px rgba(255, 159, 28, 0.05)'
-               }}>
-                 ⚠️ <b>Notice:</b> The laundry shop measured the actual clothes weight as <b>{parseFloat(selectedInvoice.order.clothes_weight).toFixed(2)} kg</b>, which differed from your initial estimate of <b>{parseFloat(selectedInvoice.order.estimated_weight).toFixed(2)} kg</b>. The billing charges have been calculated based on the actual weight.
-               </div>
+              <div style={{
+                background: 'rgba(255, 159, 28, 0.1)',
+                border: '1px solid var(--warning)',
+                color: 'var(--warning)',
+                padding: '0.85rem',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                marginBottom: '1.25rem',
+                lineHeight: '1.4',
+                boxShadow: 'inset 0 0 10px rgba(255, 159, 28, 0.05)'
+              }}>
+                ⚠️ <b>Notice:</b> The laundry shop measured the actual clothes weight as <b>{parseFloat(selectedInvoice.order.clothes_weight).toFixed(2)} kg</b>, which differed from your initial estimate of <b>{parseFloat(selectedInvoice.order.estimated_weight).toFixed(2)} kg</b>. The billing charges have been calculated based on the actual weight.
+              </div>
             )}
 
             <div style={{
@@ -985,13 +956,13 @@ export const CustomerDashboard = ({ subTab, setSubTab }) => {
             <form onSubmit={handleConfirmPaymentSubmit}>
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                 <label className="form-label" style={{ color: 'var(--text-main)', fontWeight: 'bold' }}>Enter Actual Paid Amount (Rs)</label>
-                <input 
-                  type="number" 
-                  step="0.01" 
-                  className="form-control" 
-                  placeholder="Enter paid amount to confirm" 
-                  value={actualPaidAmount} 
-                  onChange={(e) => setActualPaidAmount(e.target.value)} 
+                <input
+                  type="number"
+                  step="0.01"
+                  className="form-control"
+                  placeholder="Enter paid amount to confirm"
+                  value={actualPaidAmount}
+                  onChange={(e) => setActualPaidAmount(e.target.value)}
                   required
                 />
                 <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.3rem' }}>

@@ -68,8 +68,8 @@ class AdminController {
                 FROM users u
                 LEFT JOIN customers c ON u.id = c.user_id
                 LEFT JOIN vendors v ON u.id = v.user_id
-                WHERE u.status = 'pending' AND u.role = 'vendor'"; 
-                // Normally only vendors require approval after OTP verification in our workflow.
+                WHERE u.status = 'pending' AND u.role = 'vendor'
+                AND EXISTS (SELECT 1 FROM otp_verifications ov WHERE ov.email = u.email AND ov.is_verified = 1)";
             
             $stmt = $this->db->query($query);
             $users = $stmt->fetchAll();
@@ -85,11 +85,11 @@ class AdminController {
             $stmt = $this->db->prepare("UPDATE users SET status = 'active' WHERE id = ?");
             $stmt->execute([$userId]);
 
-            // Add notification
-            $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, 'Welcome to WashEase! Your application has been approved by the Admin.')");
+            // Add notification for vendor
+            $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, 'Welcome to WashEase! Your vendor shop application has been approved by the Admin.')");
             $stmt->execute([$userId]);
 
-            return ["success" => true, "message" => "User approved successfully."];
+            return ["success" => true, "message" => "Vendor shop application approved successfully."];
         } catch (Exception $e) {
             return ["success" => false, "message" => $e->getMessage()];
         }
@@ -100,7 +100,11 @@ class AdminController {
             $stmt = $this->db->prepare("UPDATE users SET status = 'rejected' WHERE id = ?");
             $stmt->execute([$userId]);
 
-            return ["success" => true, "message" => "User registration rejected."];
+            // Add notification for vendor
+            $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, 'Your vendor shop registration application was reviewed and rejected by Admin.')");
+            $stmt->execute([$userId]);
+
+            return ["success" => true, "message" => "Vendor shop application rejected."];
         } catch (Exception $e) {
             return ["success" => false, "message" => $e->getMessage()];
         }

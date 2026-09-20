@@ -67,6 +67,34 @@ $response = ["success" => false, "message" => "Endpoint not found."];
 $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($action) {
+    case 'public-stats':
+        if ($method === 'GET') {
+            try {
+                $db = Database::getInstance()->getConnection();
+                
+                $stmtShops = $db->query("SELECT COUNT(*) FROM vendors v JOIN users u ON v.user_id = u.id WHERE u.status = 'active'");
+                $totalShops = intval($stmtShops->fetchColumn());
+
+                $stmtCustomers = $db->query("SELECT COUNT(*) FROM customers c JOIN users u ON c.user_id = u.id WHERE u.status = 'active'");
+                $totalCustomers = intval($stmtCustomers->fetchColumn());
+
+                $stmtOrders = $db->query("SELECT COUNT(*) FROM orders WHERE status = 'Delivered'");
+                $completedOrders = intval($stmtOrders->fetchColumn());
+
+                $response = [
+                    "success" => true,
+                    "data" => [
+                        "total_shops" => $totalShops,
+                        "total_customers" => $totalCustomers,
+                        "completed_orders" => $completedOrders
+                    ]
+                ];
+            } catch (Exception $e) {
+                $response = ["success" => false, "message" => $e->getMessage()];
+            }
+        }
+        break;
+
     // === AUTH ROUTING ===
     case 'register':
         if ($method === 'POST') {

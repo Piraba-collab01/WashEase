@@ -1,10 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import laundryBg from '../assets/laundry-bg.png';
 
 export const Landing = ({ setCurrentTab, setRegisterRole }) => {
   const { user } = useAuth();
   const [copiedCode, setCopiedCode] = useState('');
+  const [stats, setStats] = useState({ total_shops: 0, total_customers: 0, completed_orders: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/index.php?action=public-stats');
+        const data = await res.json();
+        if (data.success && data.data) {
+          setStats(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch public stats:', err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const handleCopyCode = (code) => {
     navigator.clipboard.writeText(code);
@@ -66,11 +82,11 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
 
             <div className="hero-stats">
               <div className="stat-item">
-                <span className="stat-num">50+</span>
+                <span className="stat-num">{stats.total_shops}</span>
                 <span className="stat-label">Verified Shops</span>
               </div>
               <div className="stat-item">
-                <span className="stat-num">10k+</span>
+                <span className="stat-num">{stats.total_customers.toLocaleString()}</span>
                 <span className="stat-label">Happy Customers</span>
               </div>
               <div className="stat-item">

@@ -400,6 +400,40 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
         <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
           <h2 style={{ marginBottom: '1.5rem' }}>Admin Control Analytics Panel</h2>
 
+          {pendingUsers.length > 0 && (
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(255,165,0,0.15), rgba(255,140,0,0.25))',
+              border: '2px solid var(--warning)',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              marginBottom: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '1rem',
+              boxShadow: '0 4px 15px rgba(255, 165, 0, 0.15)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <span style={{ fontSize: '2rem' }}>🏪</span>
+                <div>
+                  <h4 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.15rem' }}>
+                    New Vendor Shop Registration Request Pending!
+                  </h4>
+                  <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                    There {pendingUsers.length === 1 ? 'is 1 shop application' : `are ${pendingUsers.length} shop applications`} awaiting manual verification and approval.
+                  </p>
+                </div>
+              </div>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => setSubTab('admin-users')}
+                style={{ whiteSpace: 'nowrap', padding: '0.65rem 1.35rem', fontSize: '0.95rem', fontWeight: 600 }}
+              >
+                Review & Accept Requests ({pendingUsers.length})
+              </button>
+            </div>
+          )}
+
           <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
             <div className="glass-panel stat-card">
               <div className="stat-info">

@@ -158,15 +158,25 @@ export const Navbar = ({ currentTab, setCurrentTab }) => {
                   notifications.map(n => (
                     <div
                       key={n.id}
+                      onClick={() => {
+                        setShowNotifications(false);
+                        if (user?.role === 'admin' && (n.message.includes('registration') || n.message.includes('approval') || n.message.includes('shop'))) {
+                          setCurrentTab('admin-users');
+                        }
+                      }}
                       style={{
                         fontSize: '0.85rem',
-                        padding: '0.5rem',
+                        padding: '0.6rem',
                         borderRadius: '6px',
                         background: n.is_read ? 'transparent' : 'rgba(138, 43, 226, 0.08)',
-                        borderLeft: n.is_read ? 'none' : '3px solid var(--primary)'
+                        borderLeft: n.is_read ? 'none' : '3px solid var(--primary)',
+                        cursor: 'pointer',
+                        transition: 'background 0.2s ease'
                       }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(138, 43, 226, 0.15)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = n.is_read ? 'transparent' : 'rgba(138, 43, 226, 0.08)'}
                     >
-                      <p style={{ color: 'var(--text-main)' }}>{n.message}</p>
+                      <p style={{ color: 'var(--text-main)', margin: 0 }}>{n.message}</p>
                       <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{n.created_at}</span>
                     </div>
                   ))

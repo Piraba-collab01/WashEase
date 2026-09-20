@@ -40,10 +40,28 @@ class AuthController {
         }
 
         // Check if username/email already exists
-        $stmt = $this->db->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+        $stmt = $this->db->prepare("SELECT id, email, status FROM users WHERE username = ? OR email = ?");
         $stmt->execute([$username, $email]);
-        if ($stmt->fetch()) {
-            return ["success" => false, "message" => "Username or Email already registered."];
+        $existing = $stmt->fetch();
+        if ($existing) {
+            // Check if OTP was verified for this existing email
+            $stmtOtp = $this->db->prepare("SELECT id FROM otp_verifications WHERE email = ? AND is_verified = 1");
+            $stmtOtp->execute([$existing['email']]);
+            $hasVerifiedOtp = $stmtOtp->fetch();
+
+            if ($existing['status'] === 'pending' && !$hasVerifiedOtp) {
+                // The existing account never completed OTP verification. Clean up stale record to allow fresh registration.
+                $stmtDelCust = $this->db->prepare("DELETE FROM customers WHERE user_id = ?");
+                $stmtDelCust->execute([$existing['id']]);
+
+                $stmtDelVend = $this->db->prepare("DELETE FROM vendors WHERE user_id = ?");
+                $stmtDelVend->execute([$existing['id']]);
+
+                $stmtDelUser = $this->db->prepare("DELETE FROM users WHERE id = ?");
+                $stmtDelUser->execute([$existing['id']]);
+            } else {
+                return ["success" => false, "message" => "Username or Email already registered."];
+            }
         }
 
         try {
@@ -102,7 +120,7 @@ class AuthController {
 
             return [
                 "success" => true, 
-                "message" => "Registration successful. An OTP has been sent to your email.",
+                "message" => "Registration submitted successfully. Please enter the OTP sent to your email to confirm your account.",
                 "email" => $email
             ];
 
@@ -151,7 +169,24 @@ class AuthController {
                 return ["success" => true, "message" => "OTP verified successfully. Your account is now active!"];
             } else {
                 // Vendors must be approved by Admin after OTP is verified
-                return ["success" => true, "message" => "OTP verified. Your account is pending admin approval."];
+                // Fetch vendor shop info
+                $stmtV = $this->db->prepare("SELECT shop_name, owner_name FROM vendors WHERE user_id = ?");
+                $stmtV->execute([$user['id']]);
+                $vInfo = $stmtV->fetch();
+                $shopName = $vInfo['shop_name'] ?? 'New Shop';
+                $ownerName = $vInfo['owner_name'] ?? 'Vendor';
+
+                // Send notification to all admin users
+                $stmtAdmin = $this->db->query("SELECT id FROM users WHERE role = 'admin'");
+                $admins = $stmtAdmin->fetchAll();
+
+                $notifMsg = "New vendor shop registration request: '$shopName' (Owner: $ownerName) has verified OTP and is pending your approval.";
+                $stmtN = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+                foreach ($admins as $adm) {
+                    $stmtN->execute([$adm['id'], $notifMsg]);
+                }
+
+                return ["success" => true, "message" => "OTP verified successfully! Your vendor account is now pending admin approval."];
             }
         }
 
@@ -175,27 +210,33 @@ class AuthController {
         }
 
         if ($user['status'] === 'pending') {
-            if ($user['role'] === 'vendor') {
-                return ["success" => false, "message" => "Your vendor account is pending admin approval."];
+            // Check if OTP was verified for this user's email
+            $stmtOtp = $this->db->prepare("SELECT id FROM otp_verifications WHERE email = ? AND is_verified = 1");
+            $stmtOtp->execute([$user['email']]);
+            $isOtpVerified = $stmtOtp->fetch();
+
+            if (!$isOtpVerified) {
+                // Generate a fresh OTP for unverified account
+                $email = $user['email'];
+                $otp = sprintf("%06d", mt_rand(100000, 999999));
+                $expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+                $stmtInsert = $this->db->prepare("INSERT INTO otp_verifications (email, otp, otp_expiry) VALUES (?, ?, ?)");
+                $stmtInsert->execute([$email, $otp, $expiry]);
+
+                MailService::sendOTP($email, $otp);
+
+                return [
+                    "success" => false,
+                    "needs_verification" => true,
+                    "email" => $email,
+                    "message" => "Your account email is not verified yet. A new OTP has been sent to your email. Please verify below."
+                ];
             }
-            
-            // Auto generate fresh OTP for customer
-            $email = $user['email'];
-            $otp = sprintf("%06d", mt_rand(100000, 999999));
-            $expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
-            
-            $stmt = $this->db->prepare("INSERT INTO otp_verifications (email, otp, otp_expiry) VALUES (?, ?, ?)");
-            $stmt->execute([$email, $otp, $expiry]);
-            
-            // Send OTP
-            MailService::sendOTP($email, $otp);
-            
-            return [
-                "success" => false,
-                "needs_verification" => true,
-                "email" => $email,
-                "message" => "Your account is pending verification. A new OTP has been logged to your verification file. Please verify below."
-            ];
+
+            if ($user['role'] === 'vendor') {
+                return ["success" => false, "message" => "Your OTP is verified. Your vendor account is currently pending admin approval."];
+            }
         }
 
         if ($user['status'] === 'rejected') {

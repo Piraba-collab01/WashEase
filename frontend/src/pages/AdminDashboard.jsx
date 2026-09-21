@@ -389,8 +389,28 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
     }
   };
 
-  const handleExportAdminReport = () => {
-    window.open(`http://localhost:8000/index.php?action=admin-reports&type=${reportType}&export=pdf`, '_blank');
+  const handleExportAdminReport = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/index.php?action=admin-reports&type=${reportType}&export=pdf`, {
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        alert('Failed to export PDF report');
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `admin_report_${reportType}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Error exporting PDF: ' + err.message);
+    }
   };
 
   return (

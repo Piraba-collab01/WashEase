@@ -215,9 +215,28 @@ export const VendorDashboard = ({ subTab, setSubTab }) => {
     }
   };
 
-  const handleExportPDF = () => {
-    // Open a new tab pointing directly to the export action API
-    window.open(`http://localhost:8000/index.php?action=vendor-reports&period=${reportPeriod}&export=pdf`, '_blank');
+  const handleExportPDF = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/index.php?action=vendor-reports&period=${reportPeriod}&export=pdf`, {
+        credentials: 'include'
+      });
+      if (!res.ok) {
+        alert('Failed to export PDF report');
+        return;
+      }
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vendor_report_${reportPeriod}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error(err);
+      alert('Error exporting PDF: ' + err.message);
+    }
   };
 
   const handleUpdateVendorProfile = async (e) => {

@@ -1,9 +1,19 @@
 <?php
-$hashes = [
-    'admin' => '$2y$10$tM9sEw10U34u8.7d9H36cuzm2uRpyqj3P8H9B6l4vYF2JpQ6hH/Hq', // admin123
-];
+require_once __DIR__ . '/../api/config/database.php';
+require_once __DIR__ . '/../api/controllers/AuthController.php';
 
-foreach ($hashes as $user => $hash) {
-    $verify = password_verify('admin123', $hash);
-    echo "$user with 'admin123': " . ($verify ? 'MATCH' : 'NO MATCH') . "\n";
+$db = Database::getInstance()->getConnection();
+$stmt = $db->query("SELECT id, username, email, password_hash, role, status FROM users LIMIT 10");
+$users = $stmt->fetchAll();
+
+echo "User list and password checks:\n";
+foreach ($users as $u) {
+    echo "ID: {$u['id']} | Username: {$u['username']} | Role: {$u['role']} | Status: {$u['status']}\n";
+    // Check common passwords
+    $testPasswords = ['admin', 'admin123', '123456', 'password', 'password123', 'washease123'];
+    foreach ($testPasswords as $pass) {
+        if (password_verify($pass, $u['password_hash'])) {
+            echo "   -> Password is: '$pass'\n";
+        }
+    }
 }

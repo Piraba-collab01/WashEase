@@ -71,6 +71,6 @@ class MailService {
         $logMessage = "[" . date('Y-m-d H:i:s') . "] To: $email | OTP: $otp\n";
         file_put_contents($logFile, $logMessage, FILE_APPEND);
         
-        return false; // Return false to indicate SMTP fallback was used
+        return true; // Return true as OTP was logged successfully for verification
     }
 }

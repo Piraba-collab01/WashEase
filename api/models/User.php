@@ -3,20 +3,22 @@
 
 class User {
     private $userId;
-    private $name;
+    private $username;
     private $email;
     private $passwordHash;
-    private $phone;
+    private $status;
     private $role;
+    private $phone;
 
     // Constructor
-    public function __construct($userId = null, $name = "", $email = "", $passwordHash = "", $phone = "", $role = "") {
+    public function __construct($userId = null, $username = "", $email = "", $passwordHash = "", $status = "active", $role = "", $phone = "") {
         $this->userId = $userId;
-        $this->name = $name;
+        $this->username = $username;
         $this->email = $email;
         $this->passwordHash = $passwordHash;
-        $this->phone = $phone;
+        $this->status = $status;
         $this->role = $role;
+        $this->phone = $phone;
     }
 
     // Getters and Setters
@@ -28,12 +30,21 @@ class User {
         $this->userId = $userId;
     }
 
+    public function getUsername() {
+        return $this->username;
+    }
+
+    public function setUsername($username) {
+        $this->username = $username;
+    }
+
+    // Alias for name getter/setter compatibility
     public function getName() {
-        return $this->name;
+        return $this->username;
     }
 
     public function setName($name) {
-        $this->name = $name;
+        $this->username = $name;
     }
 
     public function getEmail() {
@@ -52,12 +63,12 @@ class User {
         $this->passwordHash = $passwordHash;
     }
 
-    public function getPhone() {
-        return $this->phone;
+    public function getStatus() {
+        return $this->status;
     }
 
-    public function setPhone($phone) {
-        $this->phone = $phone;
+    public function setStatus($status) {
+        $this->status = $status;
     }
 
     public function getRole() {
@@ -68,7 +79,15 @@ class User {
         $this->role = $role;
     }
 
-    // Class Methods
+    public function getPhone() {
+        return $this->phone;
+    }
+
+    public function setPhone($phone) {
+        $this->phone = $phone;
+    }
+
+    // Class Methods (Matching UML Class Diagram)
     public function login() {
         // Authenticates user and initializes session
         return true;
@@ -80,7 +99,7 @@ class User {
     }
 
     public function updateProfile() {
-        // Save name, email, phone changes to DB
+        // Save profile changes to DB
         return true;
     }
 }

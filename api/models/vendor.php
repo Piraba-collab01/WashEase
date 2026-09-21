@@ -1,15 +1,17 @@
 <?php
-// washease-api/models/Shopkeeper.php
+// washease-api/models/Vendor.php
 
 require_once __DIR__ . '/User.php';
 
-class Shopkeeper extends User {
+class Vendor extends User {
     private $shopId;
+    private $ownerName;
 
     // Constructor
-    public function __construct($userId = null, $name = "", $email = "", $passwordHash = "", $phone = "", $role = "vendor", $shopId = null) {
-        parent::__construct($userId, $name, $email, $passwordHash, $phone, $role);
+    public function __construct($userId = null, $username = "", $email = "", $passwordHash = "", $status = "active", $role = "vendor", $phone = "", $shopId = null, $ownerName = "") {
+        parent::__construct($userId, $username, $email, $passwordHash, $status, $role, $phone);
         $this->shopId = $shopId;
+        $this->ownerName = $ownerName;
     }
 
     // Getters and Setters
@@ -21,7 +23,15 @@ class Shopkeeper extends User {
         $this->shopId = $shopId;
     }
 
-    // Class Methods
+    public function getOwnerName() {
+        return $this->ownerName;
+    }
+
+    public function setOwnerName($ownerName) {
+        $this->ownerName = $ownerName;
+    }
+
+    // Class Methods (Matching UML Class Diagram)
     public function manageOrders() {
         // Retrieve and process assigned bookings
         return [];

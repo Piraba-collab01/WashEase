@@ -1,5 +1,5 @@
 // washease-frontend/src/pages/Register.jsx
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 export const Register = ({ setCurrentTab, initialRole = 'customer' }) => {
@@ -37,21 +37,95 @@ export const Register = ({ setCurrentTab, initialRole = 'customer' }) => {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const DISTRICT_PRESETS = {
+    'Colombo': { lat: 6.927079, lng: 79.861244 },
+    'Kandy': { lat: 7.290572, lng: 80.633726 },
+    'Galle': { lat: 6.053519, lng: 80.220978 },
+    'Jaffna': { lat: 9.661498, lng: 80.025543 },
+    'Gampaha': { lat: 7.084013, lng: 79.993427 },
+    'Negombo': { lat: 7.200777, lng: 79.873672 },
+    'Kurunegala': { lat: 7.486326, lng: 80.364741 },
+    'Batticaloa': { lat: 7.730997, lng: 81.674681 },
+    'Matara': { lat: 5.954920, lng: 80.554956 },
+    'Anuradhapura': { lat: 8.311352, lng: 80.403651 },
+    'Trincomalee': { lat: 8.587364, lng: 81.215212 },
+    'Badulla': { lat: 6.993401, lng: 81.054980 },
+    'Ratnapura': { lat: 6.682772, lng: 80.399166 },
+    'Kalutara': { lat: 6.585394, lng: 79.959960 }
+  };
+
+  const handleDistrictChange = (val) => {
+    setDistrict(val);
+    if (DISTRICT_PRESETS[val] && (!latitude || !longitude || latitude === '0' || longitude === '0')) {
+      setLatitude(DISTRICT_PRESETS[val].lat.toFixed(6));
+      setLongitude(DISTRICT_PRESETS[val].lng.toFixed(6));
+      setSuccess(`Applied coordinates for ${val} district.`);
+    }
+  };
+
+  const fetchLocationFromAddress = async () => {
+    const query = [shopAddress, district, 'Sri Lanka'].filter(Boolean).join(', ');
+    if (!query || query === 'Sri Lanka') {
+      setError('Please enter a Shop Address or District/Region first to search by address.');
+      return;
+    }
+    setError('');
+    setSuccess('Searching location coordinates from address...');
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+      if (data && data.length > 0) {
+        setLatitude(parseFloat(data[0].lat).toFixed(6));
+        setLongitude(parseFloat(data[0].lon).toFixed(6));
+        setSuccess(`📍 Location found: ${data[0].display_name.split(',').slice(0, 3).join(',')}`);
+      } else if (district && DISTRICT_PRESETS[district]) {
+        setLatitude(DISTRICT_PRESETS[district].lat.toFixed(6));
+        setLongitude(DISTRICT_PRESETS[district].lng.toFixed(6));
+        setSuccess(`Applied default coordinates for ${district}.`);
+      } else {
+        setError('Could not locate address automatically. Please pick a District or enter coordinates manually.');
+      }
+    } catch (err) {
+      console.error('Address geocoding error:', err);
+      if (district && DISTRICT_PRESETS[district]) {
+        setLatitude(DISTRICT_PRESETS[district].lat.toFixed(6));
+        setLongitude(DISTRICT_PRESETS[district].lng.toFixed(6));
+        setSuccess(`Applied district default coordinates for ${district}.`);
+      } else {
+        setError('Geocoding service unavailable. Please enter coordinates manually.');
+      }
+    }
+  };
+
   // Auto Grab Geolocation for Vendor
   const getGeolocation = () => {
+    setError('');
+    setSuccess('Detecting GPS location...');
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setLatitude(position.coords.latitude.toFixed(6));
           setLongitude(position.coords.longitude.toFixed(6));
-          setSuccess('Shop GPS coordinates grabbed successfully!');
+          setSuccess('📍 Shop GPS coordinates grabbed successfully!');
         },
-        (err) => {
-          setError('Failed to fetch location. Please enter manually.');
-        }
+        async (err) => {
+          console.warn('Browser Geolocation error:', err);
+          if (shopAddress || district) {
+            setSuccess('Browser GPS unavailable. Searching coordinates from address...');
+            await fetchLocationFromAddress();
+          } else {
+            setError('Browser GPS unavailable. Please type your Shop Address/District or click "Search from Address".');
+          }
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
       );
     } else {
-      setError('Geolocation not supported by browser.');
+      if (shopAddress || district) {
+        fetchLocationFromAddress();
+      } else {
+        setError('Geolocation not supported by browser. Please enter address or coordinates manually.');
+      }
     }
   };
 
@@ -336,12 +410,18 @@ export const Register = ({ setCurrentTab, initialRole = 'customer' }) => {
                   <label className="form-label">District / Region</label>
                   <input
                     type="text"
+                    list="districts-list"
                     className="form-control"
-                    placeholder="e.g. Central, East"
+                    placeholder="e.g. Colombo, Kandy, Jaffna"
                     value={district}
-                    onChange={(e) => setDistrict(e.target.value)}
+                    onChange={(e) => handleDistrictChange(e.target.value)}
                     required
                   />
+                  <datalist id="districts-list">
+                    {Object.keys(DISTRICT_PRESETS).map(d => (
+                      <option key={d} value={d} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="form-group">
                   <label className="form-label">Shop Address</label>
@@ -356,41 +436,52 @@ export const Register = ({ setCurrentTab, initialRole = 'customer' }) => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', alignItems: 'end' }}>
-                <div className="form-group" style={{ margin: 0 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.75rem' }}>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={getGeolocation}
+                  style={{ width: '100%', padding: '0.65rem 0.5rem', fontSize: '0.85rem' }}
+                >
+                  📍 Detect My GPS
+                </button>
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={fetchLocationFromAddress}
+                  style={{ width: '100%', padding: '0.65rem 0.5rem', fontSize: '0.85rem' }}
+                >
+                  🔍 Search from Address
+                </button>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
                   <label className="form-label">Latitude</label>
                   <input
                     type="number"
                     step="0.000001"
                     className="form-control"
-                    placeholder="e.g. 12.97"
+                    placeholder="e.g. 6.927079"
                     value={latitude}
                     onChange={(e) => setLatitude(e.target.value)}
                     required
                   />
                 </div>
-                <div className="form-group" style={{ margin: 0 }}>
+                <div className="form-group">
                   <label className="form-label">Longitude</label>
                   <input
                     type="number"
                     step="0.000001"
                     className="form-control"
-                    placeholder="e.g. 77.59"
+                    placeholder="e.g. 79.861244"
                     value={longitude}
                     onChange={(e) => setLongitude(e.target.value)}
                     required
                   />
                 </div>
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
-                  onClick={getGeolocation}
-                  style={{ width: '100%', padding: '0.75rem 0.5rem', height: '44px' }}
-                >
-                  📍 Grab GPS
-                </button>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.25rem 0 1rem 0' }}>Grabs current coordinates for calculating nearby search distance.</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.25rem 0 1rem 0' }}>📍 Auto-fetches coordinates via GPS, address search, or District presets for calculating nearby search distance.</p>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div className="form-group">

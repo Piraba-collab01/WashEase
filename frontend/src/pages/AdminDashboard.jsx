@@ -501,7 +501,7 @@ export const AdminDashboard = ({ subTab, setSubTab }) => {
       {/* 2. User/Vendor Verification Approvals */}
       {subTab === 'admin-users' && (
         <div className="glass-panel" style={{ padding: '2rem', animation: 'fadeIn 0.4s ease-out' }}>
-          <h2>Pending Shopkeeper verifications</h2>
+          <h2>Pending Vendor verifications</h2>
           {error && <div style={{ background: 'rgba(231, 29, 54, 0.12)', color: 'var(--danger)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1.25rem' }}>⚠️ {error}</div>}
           {success && <div style={{ background: 'rgba(46, 196, 182, 0.12)', color: 'var(--success)', padding: '0.8rem', borderRadius: '8px', marginBottom: '1.25rem' }}>✅ {success}</div>}
 

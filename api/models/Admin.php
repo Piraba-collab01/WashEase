@@ -7,8 +7,8 @@ class Admin extends User {
     private $adminLevel;
 
     // Constructor
-    public function __construct($userId = null, $name = "", $email = "", $passwordHash = "", $phone = "", $role = "admin", $adminLevel = 1) {
-        parent::__construct($userId, $name, $email, $passwordHash, $phone, $role);
+    public function __construct($userId = null, $username = "", $email = "", $passwordHash = "", $status = "active", $role = "admin", $phone = "", $adminLevel = "SuperAdmin") {
+        parent::__construct($userId, $username, $email, $passwordHash, $status, $role, $phone);
         $this->adminLevel = $adminLevel;
     }
 
@@ -21,7 +21,7 @@ class Admin extends User {
         $this->adminLevel = $adminLevel;
     }
 
-    // Class Methods
+    // Class Methods (Matching UML Class Diagram)
     public function manageUsers() {
         // Activate/deactivate customer or vendor users
         return true;

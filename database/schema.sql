@@ -153,6 +153,7 @@ CREATE TABLE IF NOT EXISTS otp_verifications (
     otp VARCHAR(6) NOT NULL,
     otp_expiry DATETIME NOT NULL,
     is_verified BOOLEAN DEFAULT FALSE,
+    registration_data TEXT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -160,6 +161,17 @@ CREATE TABLE IF NOT EXISTS otp_verifications (
 CREATE TABLE IF NOT EXISTS admin_settings (
     setting_key VARCHAR(50) PRIMARY KEY,
     setting_value VARCHAR(255) NOT NULL
+) ENGINE=InnoDB;
+
+-- 14. Commission Payments Table
+CREATE TABLE IF NOT EXISTS commission_payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    vendor_id INT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    transaction_ref VARCHAR(100) NOT NULL,
+    status ENUM('Pending', 'Approved', 'Rejected') DEFAULT 'Pending',
+    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (vendor_id) REFERENCES vendors(user_id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- Seed Data

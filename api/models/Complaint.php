@@ -5,18 +5,20 @@ class Complaint {
     private $complaintId;
     private $customerId;
     private $orderId;
+    private $category;
     private $description;
     private $status;
-    private $resolution;
+    private $adminResponse;
 
     // Constructor
-    public function __construct($complaintId = null, $customerId = null, $orderId = null, $description = "", $status = "Pending", $resolution = "") {
+    public function __construct($complaintId = null, $customerId = null, $orderId = null, $category = "", $description = "", $status = "Pending", $adminResponse = "") {
         $this->complaintId = $complaintId;
         $this->customerId = $customerId;
         $this->orderId = $orderId;
+        $this->category = $category;
         $this->description = $description;
         $this->status = $status;
-        $this->resolution = $resolution;
+        $this->adminResponse = $adminResponse;
     }
 
     // Getters and Setters
@@ -44,6 +46,14 @@ class Complaint {
         $this->orderId = $orderId;
     }
 
+    public function getCategory() {
+        return $this->category;
+    }
+
+    public function setCategory($category) {
+        $this->category = $category;
+    }
+
     public function getDescription() {
         return $this->description;
     }
@@ -60,15 +70,24 @@ class Complaint {
         $this->status = $status;
     }
 
+    public function getAdminResponse() {
+        return $this->adminResponse;
+    }
+
+    public function setAdminResponse($adminResponse) {
+        $this->adminResponse = $adminResponse;
+    }
+
+    // Backward compatibility alias getter/setter for resolution
     public function getResolution() {
-        return $this->resolution;
+        return $this->adminResponse;
     }
 
     public function setResolution($resolution) {
-        $this->resolution = $resolution;
+        $this->adminResponse = $resolution;
     }
 
-    // Class Methods
+    // Class Methods (Matching UML Class Diagram)
     public function submit() {
         // Log complaint to DB
         return true;

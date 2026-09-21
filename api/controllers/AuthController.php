@@ -39,93 +39,39 @@ class AuthController {
             return ["success" => false, "message" => "Password must be at least 6 characters."];
         }
 
-        // Check if username/email already exists
-        $stmt = $this->db->prepare("SELECT id, email, status FROM users WHERE username = ? OR email = ?");
+        // Check if username/email already exists in users table
+        $stmt = $this->db->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
         $stmt->execute([$username, $email]);
-        $existing = $stmt->fetch();
-        if ($existing) {
-            // Check if OTP was verified for this existing email
-            $stmtOtp = $this->db->prepare("SELECT id FROM otp_verifications WHERE email = ? AND is_verified = 1");
-            $stmtOtp->execute([$existing['email']]);
-            $hasVerifiedOtp = $stmtOtp->fetch();
-
-            if ($existing['status'] === 'pending' && !$hasVerifiedOtp) {
-                // The existing account never completed OTP verification. Clean up stale record to allow fresh registration.
-                $stmtDelCust = $this->db->prepare("DELETE FROM customers WHERE user_id = ?");
-                $stmtDelCust->execute([$existing['id']]);
-
-                $stmtDelVend = $this->db->prepare("DELETE FROM vendors WHERE user_id = ?");
-                $stmtDelVend->execute([$existing['id']]);
-
-                $stmtDelUser = $this->db->prepare("DELETE FROM users WHERE id = ?");
-                $stmtDelUser->execute([$existing['id']]);
-            } else {
-                return ["success" => false, "message" => "Username or Email already registered."];
-            }
+        if ($stmt->fetch()) {
+            return ["success" => false, "message" => "Username or Email already registered."];
         }
 
         try {
-            $this->db->beginTransaction();
-
-            // Insert into users table
-            // Set status to pending. Once OTP is verified, customer becomes active, vendor becomes pending admin approval.
-            $password_hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $this->db->prepare("INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, ?, 'pending')");
-            $stmt->execute([$username, $email, $password_hash, $role]);
-            $userId = $this->db->lastInsertId();
-
-            if ($role === 'customer') {
-                $fullName = trim($data['full_name'] ?? '');
-                $phone = trim($data['contact_number'] ?? '');
-                $address = trim($data['address'] ?? '');
-
-                if (empty($fullName) || empty($phone) || empty($address)) {
-                    throw new Exception("Please fill in all customer fields.");
-                }
-
-                $stmt = $this->db->prepare("INSERT INTO customers (user_id, full_name, contact_number, address) VALUES (?, ?, ?, ?)");
-                $stmt->execute([$userId, $fullName, $phone, $address]);
-
-            } else if ($role === 'vendor') {
-                $shopName = trim($data['shop_name'] ?? '');
-                $ownerName = trim($data['owner_name'] ?? '');
-                $phone = trim($data['contact_number'] ?? '');
-                $shopAddress = trim($data['shop_address'] ?? '');
-                $district = trim($data['district'] ?? '');
-                $lat = floatval($data['latitude'] ?? 0);
-                $lng = floatval($data['longitude'] ?? 0);
-                $openTime = $data['opening_time'] ?? '08:00';
-                $closeTime = $data['closing_time'] ?? '20:00';
-
-                if (empty($shopName) || empty($ownerName) || empty($phone) || empty($shopAddress) || empty($district)) {
-                    throw new Exception("Please fill in all vendor fields.");
-                }
-
-                $stmt = $this->db->prepare("INSERT INTO vendors (user_id, shop_name, owner_name, contact_number, shop_address, district, latitude, longitude, opening_time, closing_time, services_offered) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Wash Only,Wash & Iron,Dry Cleaning,Ironing')");
-                $stmt->execute([$userId, $shopName, $ownerName, $phone, $shopAddress, $district, $lat, $lng, $openTime, $closeTime]);
-            }
-
             // Generate OTP
             $otp = sprintf("%06d", mt_rand(100000, 999999));
             $expiry = date('Y-m-d H:i:s', strtotime('+10 minutes'));
             
-            $stmt = $this->db->prepare("INSERT INTO otp_verifications (email, otp, otp_expiry) VALUES (?, ?, ?)");
-            $stmt->execute([$email, $otp, $expiry]);
+            // Store registration payload in otp_verifications WITHOUT creating users/customers/vendors rows yet
+            $stmt = $this->db->prepare("INSERT INTO otp_verifications (email, otp, otp_expiry, is_verified, registration_data) VALUES (?, ?, ?, 0, ?)");
+            $stmt->execute([$email, $otp, $expiry, json_encode($data)]);
 
-            // Commit transaction
-            $this->db->commit();
+            // Send OTP Email
+            $sent = MailService::sendOTP($email, $otp);
 
-            // Send OTP Email (ignores SMTP issues and logs locally as fallback)
-            MailService::sendOTP($email, $otp);
+            if (!$sent) {
+                return [
+                    "success" => false, 
+                    "message" => "Failed to send OTP email to $email. Please check SMTP configuration or email address and try again."
+                ];
+            }
 
             return [
                 "success" => true, 
-                "message" => "Registration submitted successfully. Please enter the OTP sent to your email to confirm your account.",
+                "message" => "Registration submitted. An OTP has been sent to your email ($email). Please check your inbox to complete registration.",
                 "email" => $email
             ];
 
         } catch (Exception $e) {
-            $this->db->rollBack();
             return ["success" => false, "message" => $e->getMessage()];
         }
     }
@@ -139,7 +85,7 @@ class AuthController {
         }
 
         $now = date('Y-m-d H:i:s');
-        $stmt = $this->db->prepare("SELECT id FROM otp_verifications WHERE email = ? AND otp = ? AND otp_expiry > ? AND is_verified = 0 ORDER BY created_at DESC LIMIT 1");
+        $stmt = $this->db->prepare("SELECT id, registration_data FROM otp_verifications WHERE email = ? AND otp = ? AND otp_expiry > ? AND is_verified = 0 ORDER BY created_at DESC LIMIT 1");
         $stmt->execute([$email, $otp, $now]);
         $verification = $stmt->fetch();
 
@@ -147,50 +93,89 @@ class AuthController {
             return ["success" => false, "message" => "Invalid or expired OTP."];
         }
 
-        // Mark OTP as verified
-        $stmt = $this->db->prepare("UPDATE otp_verifications SET is_verified = 1 WHERE id = ?");
-        $stmt->execute([$verification['id']]);
+        try {
+            $this->db->beginTransaction();
 
-        // Get user details
-        $stmt = $this->db->prepare("SELECT id, role FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch();
+            // Mark OTP as verified
+            $stmt = $this->db->prepare("UPDATE otp_verifications SET is_verified = 1 WHERE id = ?");
+            $stmt->execute([$verification['id']]);
 
-        if ($user) {
-            if ($user['role'] === 'customer') {
-                // Activate customer immediately
-                $stmt = $this->db->prepare("UPDATE users SET status = 'active' WHERE id = ?");
-                $stmt->execute([$user['id']]);
-                
-                // Add welcome notification
-                $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, 'Welcome to WashEase! Your account is active.')");
-                $stmt->execute([$user['id']]);
+            // Check if user is already created in users table
+            $stmtUser = $this->db->prepare("SELECT id, role, status FROM users WHERE email = ?");
+            $stmtUser->execute([$email]);
+            $user = $stmtUser->fetch();
 
-                return ["success" => true, "message" => "OTP verified successfully. Your account is now active!"];
-            } else {
-                // Vendors must be approved by Admin after OTP is verified
-                // Fetch vendor shop info
-                $stmtV = $this->db->prepare("SELECT shop_name, owner_name FROM vendors WHERE user_id = ?");
-                $stmtV->execute([$user['id']]);
-                $vInfo = $stmtV->fetch();
-                $shopName = $vInfo['shop_name'] ?? 'New Shop';
-                $ownerName = $vInfo['owner_name'] ?? 'Vendor';
-
-                // Send notification to all admin users
-                $stmtAdmin = $this->db->query("SELECT id FROM users WHERE role = 'admin'");
-                $admins = $stmtAdmin->fetchAll();
-
-                $notifMsg = "New vendor shop registration request: '$shopName' (Owner: $ownerName) has verified OTP and is pending your approval.";
-                $stmtN = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
-                foreach ($admins as $adm) {
-                    $stmtN->execute([$adm['id'], $notifMsg]);
+            if (!$user) {
+                $regData = json_decode($verification['registration_data'] ?? '{}', true);
+                if (empty($regData) || !isset($regData['username'])) {
+                    throw new Exception("Registration data not found for this OTP.");
                 }
 
-                return ["success" => true, "message" => "OTP verified successfully! Your vendor account is now pending admin approval."];
-            }
-        }
+                $username = trim($regData['username']);
+                $password = $regData['password'];
+                $role = $regData['role'] ?? 'customer';
+                $password_hash = password_hash($password, PASSWORD_BCRYPT);
+                $status = ($role === 'customer') ? 'active' : 'pending';
 
-        return ["success" => false, "message" => "User not found."];
+                // NOW insert into users table ONLY after OTP is confirmed
+                $stmtInstUser = $this->db->prepare("INSERT INTO users (username, email, password_hash, role, status) VALUES (?, ?, ?, ?, ?)");
+                $stmtInstUser->execute([$username, $email, $password_hash, $role, $status]);
+                $userId = $this->db->lastInsertId();
+
+                if ($role === 'customer') {
+                    $fullName = trim($regData['full_name'] ?? '');
+                    $phone = trim($regData['contact_number'] ?? '');
+                    $address = trim($regData['address'] ?? '');
+
+                    $stmtCust = $this->db->prepare("INSERT INTO customers (user_id, full_name, contact_number, address) VALUES (?, ?, ?, ?)");
+                    $stmtCust->execute([$userId, $fullName, $phone, $address]);
+
+                    $stmtNotif = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, 'Welcome to WashEase! Your account is active.')");
+                    $stmtNotif->execute([$userId]);
+
+                    $this->db->commit();
+                    return ["success" => true, "message" => "OTP verified successfully! Your customer account is now active. Please sign in."];
+
+                } else if ($role === 'vendor') {
+                    $shopName = trim($regData['shop_name'] ?? '');
+                    $ownerName = trim($regData['owner_name'] ?? '');
+                    $phone = trim($regData['contact_number'] ?? '');
+                    $shopAddress = trim($regData['shop_address'] ?? '');
+                    $district = trim($regData['district'] ?? '');
+                    $lat = floatval($regData['latitude'] ?? 0);
+                    $lng = floatval($regData['longitude'] ?? 0);
+                    $openTime = $regData['opening_time'] ?? '08:00';
+                    $closeTime = $regData['closing_time'] ?? '20:00';
+
+                    $stmtVend = $this->db->prepare("INSERT INTO vendors (user_id, shop_name, owner_name, contact_number, shop_address, district, latitude, longitude, opening_time, closing_time, services_offered) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Wash Only,Wash & Iron,Dry Cleaning,Ironing')");
+                    $stmtVend->execute([$userId, $shopName, $ownerName, $phone, $shopAddress, $district, $lat, $lng, $openTime, $closeTime]);
+
+                    // Send notification to all admin users
+                    $stmtAdmin = $this->db->query("SELECT id FROM users WHERE role = 'admin'");
+                    $admins = $stmtAdmin->fetchAll();
+
+                    $notifMsg = "New vendor shop registration request: '$shopName' (Owner: $ownerName) has verified OTP and is pending your approval.";
+                    $stmtN = $this->db->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+                    foreach ($admins as $adm) {
+                        $stmtN->execute([$adm['id'], $notifMsg]);
+                    }
+
+                    $this->db->commit();
+                    return ["success" => true, "message" => "OTP verified successfully! Your vendor account is now pending admin approval."];
+                }
+            } else {
+                $this->db->commit();
+                if ($user['role'] === 'customer') {
+                    return ["success" => true, "message" => "OTP verified successfully. Your account is active!"];
+                } else {
+                    return ["success" => true, "message" => "OTP verified. Your vendor account is pending admin approval."];
+                }
+            }
+
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            return ["success" => false, "message" => $e->getMessage()];
+        }
     }
 
     public function login($data) {
@@ -224,13 +209,20 @@ class AuthController {
                 $stmtInsert = $this->db->prepare("INSERT INTO otp_verifications (email, otp, otp_expiry) VALUES (?, ?, ?)");
                 $stmtInsert->execute([$email, $otp, $expiry]);
 
-                MailService::sendOTP($email, $otp);
+                $sent = MailService::sendOTP($email, $otp);
+
+                if (!$sent) {
+                    return [
+                        "success" => false,
+                        "message" => "Failed to send OTP email to $email. Please check SMTP configuration or try again later."
+                    ];
+                }
 
                 return [
                     "success" => false,
                     "needs_verification" => true,
                     "email" => $email,
-                    "message" => "Your account email is not verified yet. A new OTP has been sent to your email. Please verify below."
+                    "message" => "Your account email is not verified yet. An OTP has been sent to your email ($email)."
                 ];
             }
 
@@ -284,7 +276,6 @@ class AuthController {
 
     public function forgotPassword($data) {
         $email = trim($data['email'] ?? '');
-
         if (empty($email)) {
             return ["success" => false, "message" => "Email is required."];
         }
@@ -301,9 +292,13 @@ class AuthController {
         $stmt = $this->db->prepare("INSERT INTO otp_verifications (email, otp, otp_expiry) VALUES (?, ?, ?)");
         $stmt->execute([$email, $otp, $expiry]);
 
-        MailService::sendOTP($email, $otp);
+        $sent = MailService::sendOTP($email, $otp);
 
-        return ["success" => true, "message" => "OTP sent to your email."];
+        if (!$sent) {
+            return ["success" => false, "message" => "Failed to send password reset OTP to $email. Please check SMTP configuration."];
+        }
+
+        return ["success" => true, "message" => "An OTP has been sent to your email ($email)."];
     }
 
     public function resetPassword($data) {

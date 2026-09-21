@@ -1,0 +1,12 @@
+{
+  "name": "washease-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WashEase Laundry Management Platform",
+  "scripts": {
+    "start": "start-all.bat",
+    "dev": "start-all.bat",
+    "backend": "C:\\xampp\\php\\php.exe -S localhost:8000 -t api",
+    "frontend": "npm --prefix frontend run dev"
+  }
+}

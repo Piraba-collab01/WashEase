@@ -5,8 +5,8 @@ echo WashEase Backend + Frontend Startup
 echo =========================================
 echo.
 
-REM Set Node.js PATH
-set PATH=%PATH%;C:\Program Files\nodejs
+REM Set Node.js and PHP PATH
+set PATH=%PATH%;C:\Program Files\nodejs;C:\xampp\php
 
 REM Start PHP Backend in new window
 echo [1/2] Starting PHP Backend on http://localhost:8000 ...

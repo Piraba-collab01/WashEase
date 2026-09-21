@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, API_URL } from '../context/AuthContext';
 import laundryBg from '../assets/laundry-bg.png';
 
 export const Landing = ({ setCurrentTab, setRegisterRole }) => {
@@ -10,7 +10,7 @@ export const Landing = ({ setCurrentTab, setRegisterRole }) => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:8000/index.php?action=public-stats');
+        const res = await fetch(`${API_URL}?action=public-stats`);
         const data = await res.json();
         if (data.success && data.data) {
           setStats(data.data);
